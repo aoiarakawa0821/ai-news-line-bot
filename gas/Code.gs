@@ -72,7 +72,7 @@ function handleEvent_(event) {
 
   if (event.type === 'message' && event.message && event.message.type === 'text') {
     const text = (event.message.text || '').trim();
-    if (isAdminCommand_(text)) {
+    if (parseAdminCommand_(text)) {
       handleAdminCommand_(userId, text, event.replyToken);
       return;
     }
@@ -128,26 +128,26 @@ function handleRegistration_(userId, replyToken) {
 }
 
 function handleAdminCommand_(userId, text, replyToken) {
-  const adminUserId = getProperty_('ADMIN_LINE_USER_ID');
-  if (!adminUserId || userId !== adminUserId) {
+  const adminCommand = parseAdminCommand_(text);
+  if (!adminCommand) {
+    reply_(replyToken, '未対応のコマンドです。\n\n' + helpText_());
+    return;
+  }
+
+  if (!isAdmin_(userId)) {
     reply_(replyToken, 'このコマンドは管理者だけが実行できます。');
     return;
   }
 
-  const normalized = text.replace(/\s+/g, ' ').trim();
-  const parts = normalized.split(' ');
-  const command = parts[0].toLowerCase();
-  const arg = parts.length > 1 ? parts[1] : '';
-
-  if (command === 'approve') {
-    approveOrReject_(STATUS_APPROVED, arg, replyToken);
-  } else if (command === 'reject') {
-    approveOrReject_(STATUS_REJECTED, arg, replyToken);
-  } else if (normalized.toLowerCase() === 'list pending') {
+  if (adminCommand.name === 'approve') {
+    approveOrReject_(STATUS_APPROVED, adminCommand.arg, replyToken);
+  } else if (adminCommand.name === 'reject') {
+    approveOrReject_(STATUS_REJECTED, adminCommand.arg, replyToken);
+  } else if (adminCommand.name === 'list' && adminCommand.status === STATUS_PENDING) {
     listByStatus_(STATUS_PENDING, replyToken);
-  } else if (normalized.toLowerCase() === 'list approved') {
+  } else if (adminCommand.name === 'list' && adminCommand.status === STATUS_APPROVED) {
     listByStatus_(STATUS_APPROVED, replyToken);
-  } else if (command === 'help') {
+  } else if (adminCommand.name === 'help') {
     reply_(replyToken, helpText_());
   } else {
     reply_(replyToken, '未対応のコマンドです。\n\n' + helpText_());
@@ -297,7 +297,7 @@ function getLineProfile_(userId) {
     muteHttpExceptions: true,
   });
   if (response.getResponseCode() >= 400) {
-    console.error('LINE profile API failed. status=' + response.getResponseCode() + ' body=' + response.getContentText());
+    console.error('LINE profile API failed. status=' + response.getResponseCode());
     return {};
   }
   return JSON.parse(response.getContentText() || '{}');
@@ -347,7 +347,7 @@ function notifyAdmin_(text) {
 function logLineApiFailure_(response, label) {
   const status = response.getResponseCode();
   if (status >= 400) {
-    console.error('LINE ' + label + ' API failed. status=' + status + ' body=' + response.getContentText());
+    console.error('LINE ' + label + ' API failed. status=' + status);
   }
 }
 
@@ -378,15 +378,41 @@ function getHeader_(e, name) {
   return '';
 }
 
+function isAdmin_(sourceUserId) {
+  const adminUserId = getProperty_('ADMIN_LINE_USER_ID');
+  return !!adminUserId && sourceUserId === adminUserId;
+}
+
 function isAdminCommand_(text) {
-  const normalized = String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
-  return normalized === 'approve' ||
-    normalized.indexOf('approve ') === 0 ||
-    normalized === 'reject' ||
-    normalized.indexOf('reject ') === 0 ||
-    normalized === 'list pending' ||
-    normalized === 'list approved' ||
-    normalized === 'help';
+  return !!parseAdminCommand_(text);
+}
+
+function parseAdminCommand_(text) {
+  const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  let match = normalized.match(/^approve(?: ([^\s]+))?$/i);
+  if (match) {
+    return { name: 'approve', arg: match[1] || '' };
+  }
+
+  match = normalized.match(/^reject(?: ([^\s]+))?$/i);
+  if (match) {
+    return { name: 'reject', arg: match[1] || '' };
+  }
+
+  match = normalized.match(/^list (pending|approved)$/i);
+  if (match) {
+    return { name: 'list', status: match[1].toLowerCase() };
+  }
+
+  if (normalized.toLowerCase() === 'help') {
+    return { name: 'help' };
+  }
+
+  return null;
 }
 
 function helpText_() {
@@ -430,4 +456,104 @@ function forbiddenResponse_() {
 
 function safeError_(error) {
   return error && error.message ? error.message : String(error);
+}
+
+function runAdminSecurityTests() {
+  testNonAdminCannotSelfApprove_();
+  testNonAdminCannotApproveOtherUser_();
+  testNonAdminCannotReject_();
+  testNonAdminCannotList_();
+  testAdminCommandsDeniedWhenAdminUnset_();
+  testParseAdminCommandStrict_();
+}
+
+function testNonAdminCannotSelfApprove_() {
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'approve U_non_admin', 'U_admin');
+}
+
+function testNonAdminCannotApproveOtherUser_() {
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'approve U_other_user', 'U_admin');
+}
+
+function testNonAdminCannotReject_() {
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'reject U_other_user', 'U_admin');
+}
+
+function testNonAdminCannotList_() {
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'list pending', 'U_admin');
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'list approved', 'U_admin');
+}
+
+function testAdminCommandsDeniedWhenAdminUnset_() {
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'approve U_non_admin', '');
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'reject U_other_user', '');
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'list pending', '');
+  assertAdminCommandDeniedBeforeMutation_('U_non_admin', 'list approved', '');
+}
+
+function testParseAdminCommandStrict_() {
+  const approveCommand = parseAdminCommand_('approve U_Target');
+  assertTruthy_(approveCommand, 'approve with one userId should be parsed');
+  assertEqual_(approveCommand.arg, 'U_Target', 'approve userId casing must be preserved');
+  assertTruthy_(parseAdminCommand_('reject U_target'), 'reject with one userId should be parsed');
+  assertTruthy_(parseAdminCommand_('list pending'), 'list pending should be parsed');
+  assertTruthy_(parseAdminCommand_('list approved'), 'list approved should be parsed');
+  assertFalsy_(parseAdminCommand_('please approve U_target'), 'prefix text must not be parsed');
+  assertFalsy_(parseAdminCommand_('approve U_target now'), 'extra approve arguments must not be parsed');
+  assertFalsy_(parseAdminCommand_('approved'), 'partial approve word must not be parsed');
+  assertFalsy_(parseAdminCommand_('list'), 'incomplete list must not be parsed');
+}
+
+function assertAdminCommandDeniedBeforeMutation_(sourceUserId, text, adminUserId) {
+  const originalGetProperty = getProperty_;
+  const originalReply = reply_;
+  const originalApproveOrReject = approveOrReject_;
+  const originalListByStatus = listByStatus_;
+  let mutationReached = false;
+  let listReached = false;
+  let replyText = '';
+
+  try {
+    getProperty_ = function(name) {
+      return name === 'ADMIN_LINE_USER_ID' ? adminUserId : '';
+    };
+    reply_ = function(replyToken, text) {
+      replyText = text;
+    };
+    approveOrReject_ = function() {
+      mutationReached = true;
+    };
+    listByStatus_ = function() {
+      listReached = true;
+    };
+
+    handleAdminCommand_(sourceUserId, text, 'test-reply-token');
+
+    assertFalsy_(mutationReached, text + ' must not reach approve/reject mutation');
+    assertFalsy_(listReached, text + ' must not reach spreadsheet list read');
+    assertTruthy_(replyText.indexOf('管理者だけ') >= 0, text + ' should reply with admin-only message');
+  } finally {
+    getProperty_ = originalGetProperty;
+    reply_ = originalReply;
+    approveOrReject_ = originalApproveOrReject;
+    listByStatus_ = originalListByStatus;
+  }
+}
+
+function assertTruthy_(value, message) {
+  if (!value) {
+    throw new Error(message);
+  }
+}
+
+function assertFalsy_(value, message) {
+  if (value) {
+    throw new Error(message);
+  }
+}
+
+function assertEqual_(actual, expected, message) {
+  if (actual !== expected) {
+    throw new Error(message + ' actual=' + actual + ' expected=' + expected);
+  }
 }

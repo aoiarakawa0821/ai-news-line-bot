@@ -134,6 +134,24 @@ reject Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ## 9. 動作確認
 
+### 非管理者が自己承認できないことを確認する
+
+コード更新後、Apps Scriptエディタで `runAdminSecurityTests` を選んで実行します。エラーが出なければ、次の条件をコード上で確認できています。
+
+- 非管理者が `approve 自分のuserId` を送っても承認処理に到達しません。
+- 非管理者が `approve 他人のuserId` や `reject userId` を送っても承認・拒否処理に到達しません。
+- 非管理者が `list pending` / `list approved` を送っても一覧取得処理に到達しません。
+- `ADMIN_LINE_USER_ID` が未設定の場合、管理者コマンドはすべて拒否されます。
+- `please approve ...` や `approve userId now` のような曖昧な文は管理者コマンドとして扱われません。
+
+実際のLINEでも次の手順で確認できます。
+
+1. 管理者ではないLINEアカウントで公式アカウントにメッセージを送り、スプレッドシートに `pending` として登録されることを確認します。
+2. その非管理者アカウントから `approve 自分のuserId` を送ります。
+3. 返信が「このコマンドは管理者だけが実行できます。」になることを確認します。
+4. スプレッドシート上の自分の `status` が `pending` のまま変わっていないことを確認します。
+5. 同じ非管理者アカウントから `approve 他人のuserId`、`reject 他人のuserId`、`list pending`、`list approved` を送っても、承認・拒否・一覧取得が実行されないことを確認します。
+
 ### GAS Webhookログを見る
 
 1. Apps Script画面を開きます。
@@ -158,4 +176,3 @@ reject Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - `APPROVED_USERS_API_KEY` がGASとGitHub Secretsで同じか確認します。
 - スプレッドシートを全体公開しないでください。
 - LINEアクセストークン、Channel secret、APIキーをREADMEやコードに書かないでください。
-

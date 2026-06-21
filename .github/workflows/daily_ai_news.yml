@@ -31,6 +31,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_TO_ID: ${{ secrets.LINE_TO_ID }}
+          LINE_TO_IDS: ${{ secrets.LINE_TO_IDS }}
+          APPROVED_USERS_ENDPOINT: ${{ secrets.APPROVED_USERS_ENDPOINT }}
+          APPROVED_USERS_API_KEY: ${{ secrets.APPROVED_USERS_API_KEY }}
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
           SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
           GITHUB_REPOSITORY: ${{ github.repository }}

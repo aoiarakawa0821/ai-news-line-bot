@@ -116,68 +116,164 @@ def generate_news_briefing(
 
 def _build_prompt(*, date_jst: str, detail_url: str) -> str:
     return f"""
-あなたは日本語のAIニュース編集者です。現在日時は {date_jst} JST です。
-OpenAI Responses APIのweb_search toolで、過去24時間を優先してAIニュースを調査してください。
+あなたは日本語のAI・ITニュース編集者です。現在日時は {date_jst} JST です。
+OpenAI Responses APIのweb_search toolで、過去24時間を優先してAI・IT技術ニュースを調査してください。
 
 目的:
-毎朝7:00 JSTに、Apple / Google / OpenAI / Anthropic / Microsoft / NVIDIA /
-AI搭載端末・OS に関するニュースを収集し、日本語で要約する。
+毎朝7:00 JSTに、AI技術・IT技術・主要テック企業・AI搭載端末・OS・開発者向けツール・AI実行基盤に関する重要ニュースを収集し、日本語で要約する。
+
+対象範囲:
+- AIモデル、生成AI、エージェント、AIアプリ、開発者向けAIツール
+- OpenAI / Anthropic / Google / Microsoft / Meta / xAI / Perplexity などのAI関連ニュース
+- Apple / Google / Microsoft などのOS・端末・プラットフォームへのAI統合
+- NVIDIA / AMD / Intel / Qualcomm / Arm などのAI半導体・AI実行基盤
+- AI PC、オンデバイスAI、ローカルAI、エッジAI、AI搭載スマートフォン
+- クラウドAI、API、開発基盤、エージェント基盤、AI検索
+- セキュリティ、プライバシー、著作権、規制など、AI利用に影響する重要トピック
+- その他、AI・IT技術の今後に影響しそうなニュース
 
 優先順位:
-1. Apple関連
-2. 技術的に面白いニュース
-3. OS・端末にAIが統合されるニュース
-4. OpenAI / Anthropic / Google / Microsoft のモデル・エージェント・プロダクト更新
-5. NVIDIAなどAI実行基盤・AI PC関連
+1. 技術的・社会的インパクトが大きいAI・ITニュース
+2. モデル、エージェント、開発者向けツール、AIアプリ、AI検索の重要アップデート
+3. OS・端末・ブラウザ・クラウドにAIが統合されるニュース
+4. OpenAI / Anthropic / Google / Microsoft / Meta / Apple / NVIDIA など主要企業の重要発表
+5. AI半導体、AI PC、オンデバイスAI、ローカルAIなど実行基盤のニュース
+6. Apple関連ニュースは重要なら扱うが、必ず最優先にはしない
 
 収集対象キーワード:
-Apple, Apple Intelligence, Siri AI, iOS, iPadOS, macOS, visionOS,
-AI-enabled device, AI-enabled OS, Google, Gemini, Android AI, Chrome AI,
-OpenAI, ChatGPT, Codex, Anthropic, Claude, Microsoft, Copilot, M365 Copilot,
-Windows AI, Azure AI, NVIDIA, AI PC, local AI, on-device AI
+AI, generative AI, AI agent, AI assistant, AI search, AI browser,
+OpenAI, ChatGPT, Codex, Anthropic, Claude, Google, Gemini, DeepMind,
+Microsoft, Copilot, M365 Copilot, Windows AI, Azure AI,
+Apple, Apple Intelligence, Siri, iOS, iPadOS, macOS, visionOS,
+Meta AI, xAI, Grok, Perplexity, AI startup,
+NVIDIA, CUDA, GPU, AMD, Intel, Qualcomm, Arm, AI chip,
+AI PC, on-device AI, local AI, edge AI, AI-enabled OS, AI-enabled device,
+developer tools, coding agent, cloud AI, AI infrastructure,
+privacy, security, copyright, regulation
 
 必ず守る条件:
+- 過去24時間以内の記事・発表を最優先する。
 - 日本語記事と無料で読める記事を優先する。
 - 英語記事は、公式情報、一次情報、日本語記事がない場合、信頼性が高い場合だけ使う。
+- 公式ブログ、公式発表、開発者向けドキュメント、一次情報を優先する。
+- 大手報道・専門メディアは信頼度を明記して使う。
 - 株価、決算、投資家向け、アナリスト評価、目標株価、M&A観測中心の記事は除外する。
 - 噂はBloomberg, The Verge, 9to5Mac, MacRumorsなど信頼できる媒体に限る。
 - 噂は必ず「未確認情報」または「噂」と明記する。
 - Bloombergなど有料記事は、無料で確認できる信頼性のある二次情報がある場合だけ扱う。
-- 内容が薄い転載記事や広告記事は除外する。
+- 内容が薄い転載記事、広告記事、SEO目的の記事は除外する。
 - ニュースが少ない場合は水増しせず「本日は条件に合う重要ニュースが少なめです」と明記する。
 - kintone、社内業務改善、業務フロー設計、WWDC資料作成向け観点は入れない。
+- 事実と推測を混ぜない。推測や見通しは「見通し」「解釈」と明記する。
+- 各ニュースには、可能な限りソースURLを含める。
+- 同じニュースの重複記事はまとめ、最も信頼できるソースを使う。
 
 LINE短縮版 line_message:
-- 詳細版全文を入れない。
-- 見出しは必ず「【今日の結論】」「【重要ニュース】」「【今日読むべき記事】」「詳細版: URL」にする。
-- 「今日の結論」「重要ニュース3〜5本」「今日読むべき記事1〜3本」「詳細版リンク」を含める。
-- 詳細版リンクは {detail_url} を使う。
-- 原則1通で読める長さにする。
+以下の固定テンプレートに必ず従うこと。
+見出し名、順番、括弧、区切り線を変えないこと。
+毎回この構造で出力すること。
+詳細版全文は入れないが、各ニュースの説明は短すぎないようにする。
+原則として、重要ニュースは3〜5本、今日読むべき記事は1〜3本にする。
+該当ニュースが少ない場合は、無理に水増ししない。
+
+line_message は必ず以下のテンプレートで作る。
+
+【今日の結論】
+{{今日の全体傾向を2〜4文で説明する。単なる箇条書きではなく、今日のAI・ITニュース全体が何を示しているのかを書く。}}
+
+【重要ニュース】
+
+1. {{カテゴリ}}｜{{ニュース見出し}}
+    概要：{{何が起きたかを2〜3文で説明}}
+    重要度：{{高/中/低}}
+    信頼度：{{公式/大手報道/専門メディア/噂}}
+    意味：{{このニュースがAI・ITの流れとして何を意味するかを1〜2文で説明}}
+2. {{カテゴリ}}｜{{ニュース見出し}}
+    概要：{{何が起きたかを2〜3文で説明}}
+    重要度：{{高/中/低}}
+    信頼度：{{公式/大手報道/専門メディア/噂}}
+    意味：{{このニュースがAI・ITの流れとして何を意味するかを1〜2文で説明}}
+3. {{カテゴリ}}｜{{ニュース見出し}}
+    概要：{{何が起きたかを2〜3文で説明}}
+    重要度：{{高/中/低}}
+    信頼度：{{公式/大手報道/専門メディア/噂}}
+    意味：{{このニュースがAI・ITの流れとして何を意味するかを1〜2文で説明}}
+
+{{重要ニュースが4本目・5本目まで必要な場合は、同じ形式で続ける。不要なら出さない。}}
+
+【今日読むべき記事】
+
+1. {{記事タイトル}}
+    理由：{{なぜ読むべきかを1〜2文で説明}}
+    URL：{{URL}}
+2. {{記事タイトル}}
+    理由：{{なぜ読むべきかを1〜2文で説明}}
+    URL：{{URL}}
+
+{{3本目が必要な場合は同じ形式で続ける。不要なら出さない。}}
+
+【補足】
+{{ニュースが少ない日、噂が多い日、公式発表が少ない日など、今日のニュースの読み方に関する補足を1〜3文で書く。不要なら「特になし」と書く。}}
+
+詳細版: {detail_url}
+
+LINE短縮版のルール:
+- 見出しは必ず「【今日の結論】」「【重要ニュース】」「【今日読むべき記事】」「【補足】」「詳細版: URL」にする。
+- 見出しの順番を変えない。
+- Markdownの表は使わない。
+- 箇条書きは使ってよいが、毎回テンプレートに合わせる。
+- 重要ニュースごとに「概要」「重要度」「信頼度」「意味」を必ず入れる。
+- 詳細版リンクは必ず {detail_url} を使う。
+- line_messageには詳細版全文を入れない。
+- ただし、短すぎる要約にしない。LINEで読める範囲で、文脈が分かる長さにする。
+- ニュースが少ない場合は、重要ニュースを3本未満にしてもよい。その場合は【補足】で「本日は条件に合う重要ニュースが少なめです」と明記する。
+- 形式が崩れそうな場合でも、必ず上記テンプレートを優先する。
 
 詳細版 detailed_markdown:
 以下の構成を日本語Markdownで作る。
+詳細版は現在の構成を維持しつつ、文章量は現在より長めでよい。
+各ニュースの背景、解釈、今後の見通しを厚めに書く。
 
 # AIニュース詳細版｜YYYY年MM月DD日 7:00 JST
 
 ## 今日の結論
 - 今日の全体傾向を3〜5行で要約
 - 特に重要なニュースを1〜3件
+- AI・IT技術全体の流れとして何が見えているかを書く
 
 ## Apple
 各ニュースに、見出し、3行要約、公開タイミング、重要度、信頼度、
 自分向けの意味、解釈・評価、今後の見通し、ソースURLを含める。
+Apple関連で重要ニュースが少ない日は、無理に水増しせず「本日はApple関連の重要ニュースは少なめ」と書く。
 
 ## Google
 同上。
 
 ## Other AI
-OpenAI、Anthropic、Microsoft、NVIDIA、AI搭載端末・OSなどをまとめる。同上。
+OpenAI、Anthropic、Microsoft、Meta、xAI、Perplexity、NVIDIA、AMD、Intel、Qualcomm、Arm、AI搭載端末・OS、AI開発者ツール、AI検索、AI規制・セキュリティなどをまとめる。
+各ニュースに、見出し、3行要約、公開タイミング、重要度、信頼度、自分向けの意味、解釈・評価、今後の見通し、ソースURLを含める。
 
 ## 今日読むべき記事
 1〜3本。読むべき理由とURLを示す。
 
 ## 深掘り候補
-3〜5件。
+3〜5件。今後追うべき理由を添える。
+
+出力品質:
+- LINE短縮版と詳細版で、重要ニュースの選定が大きく矛盾しないようにする。
+- LINE短縮版は定型フォーマットを最優先する。
+- 詳細版は読み物として自然にする。
+- 重要度と信頼度を必ず明記する。
+- URLがないニュースは原則採用しない。
+- ソースが弱い場合は信頼度を下げ、噂・未確認情報として扱う。
+- 古いニュースを最新ニュースのように扱わない。
+- 過去24時間に限定しすぎて重要ニュースが少ない場合は、過去48時間以内まで広げてもよいが、その場合は「過去48時間以内」と分かるようにする。
+
+実装上の注意:
+- Structured Outputsのスキーマを壊さない。必ず date_jst, line_message, detailed_markdown, sources, must_read, deep_dive_candidates を含むJSONを返す。
+- line_message は上記テンプレートそのものに従わせる。
+- detailed_markdown は既存のMarkdown生成・HTML生成処理と互換性を保つ。
+- {date_jst} と {detail_url} の埋め込みは既存の仕組みを維持する。
 
 返答はJSONだけにしてください。前後に説明文やMarkdownコードフェンスを書かないでください。
 """.strip()

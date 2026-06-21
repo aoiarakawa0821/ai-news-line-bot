@@ -17,7 +17,8 @@ function doPost(e) {
   try {
     const body = e && e.postData && e.postData.contents ? e.postData.contents : '';
     if (!verifyLineSignature_(body, e)) {
-      return json_({ ok: false, error: 'invalid_signature' });
+      console.warn('LINE signature verification failed.');
+      return forbiddenResponse_();
     }
 
     const payload = JSON.parse(body || '{}');
@@ -25,11 +26,11 @@ function doPost(e) {
     events.forEach(function(event) {
       handleEvent_(event);
     });
-    return json_({ ok: true });
+    return okResponse_();
   } catch (error) {
     console.error('doPost error: ' + safeError_(error));
     notifyAdmin_('GAS Webhookでエラーが発生しました。スプレッドシート設定とログを確認してください。');
-    return json_({ ok: false, error: 'internal_error' });
+    return okResponse_();
   }
 }
 
@@ -417,6 +418,14 @@ function json_(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function okResponse_() {
+  return HtmlService.createHtmlOutput('OK');
+}
+
+function forbiddenResponse_() {
+  return HtmlService.createHtmlOutput('Forbidden');
 }
 
 function safeError_(error) {

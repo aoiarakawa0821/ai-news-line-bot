@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import Iterable
 
 import requests
@@ -11,6 +12,12 @@ logger = logging.getLogger(__name__)
 
 LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push"
 MAX_LINE_TEXT_LENGTH = 4900
+
+
+@dataclass(frozen=True)
+class SendSummary:
+    success_count: int
+    failure_count: int
 
 
 def send_line_message(
@@ -54,6 +61,33 @@ def send_line_message(
             response.raise_for_status()
 
     logger.info("LINE送信に成功しました。status=%s", response.status_code)
+
+
+def send_line_message_to_many(
+    *,
+    channel_access_token: str,
+    to_ids: list[str],
+    message: str,
+    timeout: int = 20,
+) -> SendSummary:
+    success_count = 0
+    failure_count = 0
+
+    for to_id in to_ids:
+        try:
+            send_line_message(
+                channel_access_token=channel_access_token,
+                to_id=to_id,
+                message=message,
+                timeout=timeout,
+            )
+            success_count += 1
+        except requests.RequestException:
+            failure_count += 1
+            logger.exception("LINE送信に失敗しました。処理は続行します。")
+
+    logger.info("LINE一斉送信が完了しました。success=%s failure=%s", success_count, failure_count)
+    return SendSummary(success_count=success_count, failure_count=failure_count)
 
 
 def split_line_message(message: str) -> list[str]:

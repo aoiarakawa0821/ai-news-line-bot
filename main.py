@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 
+from approved_users import resolve_delivery_targets
 from config import load_config, today_jst
-from line_sender import send_line_message
+from line_sender import send_line_message_to_many
 from news_briefing import generate_news_briefing
 from site_generator import generate_site
 
@@ -46,11 +46,28 @@ def main() -> None:
     )
     logger.info("生成ファイル: %s, %s, %s", dated_path, latest_path, index_path)
 
-    send_line_message(
-        channel_access_token=config.line_channel_access_token,
-        to_id=config.line_to_id,
-        message=briefing.line_message,
+    delivery_targets = resolve_delivery_targets(config)
+    logger.info(
+        "LINE送信先を解決しました。mode=%s count=%s",
+        delivery_targets.mode,
+        len(delivery_targets.to_ids),
     )
+
+    if not delivery_targets.to_ids:
+        logger.warning("送信先が0件のため、LINE送信をスキップします。mode=%s", delivery_targets.mode)
+        logger.info("AIニュース生成処理が完了しました。")
+        return
+
+    line_message = briefing.line_message
+    if delivery_targets.warning_message:
+        line_message = f"{delivery_targets.warning_message}\n\n{line_message}"
+
+    summary = send_line_message_to_many(
+        channel_access_token=config.line_channel_access_token,
+        to_ids=delivery_targets.to_ids,
+        message=line_message,
+    )
+    logger.info("LINE送信結果: success=%s failure=%s", summary.success_count, summary.failure_count)
 
     logger.info("AIニュース生成処理が完了しました。")
 
@@ -63,4 +80,3 @@ def build_detail_url(site_base_url: str, date_slug: str) -> str:
 
 if __name__ == "__main__":
     main()
-

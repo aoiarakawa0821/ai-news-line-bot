@@ -17,6 +17,9 @@ class AppConfig:
     openai_api_key: str
     line_channel_access_token: str
     line_to_id: str
+    line_to_ids: list[str]
+    approved_users_endpoint: str
+    approved_users_api_key: str
     openai_model: str
     site_base_url: str
     github_repository: str
@@ -45,11 +48,23 @@ def load_config() -> AppConfig:
     site_base_url = os.getenv("SITE_BASE_URL", "").strip() or infer_site_base_url(
         github_repository
     )
+    line_to_id = os.getenv("LINE_TO_ID", "").strip()
+    line_to_ids = _split_csv(os.getenv("LINE_TO_IDS", ""))
+    approved_users_endpoint = os.getenv("APPROVED_USERS_ENDPOINT", "").strip()
+
+    if not approved_users_endpoint and not line_to_ids and not line_to_id:
+        raise RuntimeError(
+            "送信先が設定されていません。APPROVED_USERS_ENDPOINT、LINE_TO_IDS、"
+            "またはLINE_TO_IDのいずれかを設定してください。"
+        )
 
     return AppConfig(
         openai_api_key=_read_required_env("OPENAI_API_KEY"),
         line_channel_access_token=_read_required_env("LINE_CHANNEL_ACCESS_TOKEN"),
-        line_to_id=_read_required_env("LINE_TO_ID"),
+        line_to_id=line_to_id,
+        line_to_ids=line_to_ids,
+        approved_users_endpoint=approved_users_endpoint,
+        approved_users_api_key=os.getenv("APPROVED_USERS_API_KEY", "").strip(),
         openai_model=os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL).strip()
         or DEFAULT_OPENAI_MODEL,
         site_base_url=site_base_url,
@@ -60,3 +75,6 @@ def load_config() -> AppConfig:
 def today_jst() -> datetime:
     return datetime.now(JST)
 
+
+def _split_csv(value: str) -> list[str]:
+    return [item.strip() for item in value.split(",") if item.strip()]

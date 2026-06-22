@@ -19,14 +19,65 @@ BRIEFING_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "required": [
         "date_jst",
+        "overall_summary",
+        "news_items",
         "line_message",
         "detailed_markdown",
         "sources",
         "must_read",
         "deep_dive_candidates",
+        "editor_note",
     ],
     "properties": {
         "date_jst": {"type": "string"},
+        "overall_summary": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["conclusion", "key_points"],
+            "properties": {
+                "conclusion": {"type": "string"},
+                "key_points": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+            },
+        },
+        "news_items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "category",
+                    "title",
+                    "line_summary",
+                    "summary_points",
+                    "published_timing",
+                    "importance",
+                    "reliability",
+                    "user_meaning",
+                    "analysis",
+                    "outlook",
+                    "source_url",
+                ],
+                "properties": {
+                    "category": {"type": "string"},
+                    "title": {"type": "string"},
+                    "line_summary": {"type": "string"},
+                    "summary_points": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                    "published_timing": {"type": "string"},
+                    "importance": {"type": "string"},
+                    "reliability": {"type": "string"},
+                    "user_meaning": {"type": "string"},
+                    "analysis": {"type": "string"},
+                    "outlook": {"type": "string"},
+                    "source_url": {"type": "string"},
+                },
+            },
+        },
         "line_message": {"type": "string"},
         "detailed_markdown": {"type": "string"},
         "sources": {
@@ -50,6 +101,7 @@ BRIEFING_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {"type": "string"},
         },
+        "editor_note": {"type": "string"},
     },
 }
 
@@ -169,112 +221,126 @@ privacy, security, copyright, regulation
 - 各ニュースには、可能な限りソースURLを含める。
 - 同じニュースの重複記事はまとめ、最も信頼できるソースを使う。
 
-LINE短縮版 line_message:
-以下の固定テンプレートに必ず従うこと。
-見出し名、順番、括弧、区切り線を変えないこと。
-毎回この構造で出力すること。
-詳細版全文は入れないが、各ニュースの説明は短すぎないようにする。
-原則として、重要ニュースは3〜5本、今日読むべき記事は1〜3本にする。
-該当ニュースが少ない場合は、無理に水増ししない。
+出力の作り方:
+1. まず `news_items` を作る。これがLINE短縮版と詳細版の唯一の正本です。
+2. `news_items` は重要度・新しさ・技術的/社会的インパクトを総合して、重要な順に並べる。
+3. LINE短縮版 `line_message` と詳細版 `detailed_markdown` は、必ず `news_items` と同じニュース、同じ順序、同じ重要度、同じ信頼度、同じURLを使う。
+4. 詳細版でカテゴリ別に並べ替えない。Apple / Google / OpenAI などの分類は `category` と見出し内で示し、本文の順序は `news_items` の順序を保つ。
+5. Apple関連は重要なら扱うが、必ず最優先にはしない。
+6. ニュースが少ない場合は水増しせず、`news_items` を3本未満にしてよい。その場合は `editor_note` とLINEの補足に「本日は条件に合う重要ニュースが少なめです」と書く。
 
-line_message は必ず以下のテンプレートで作る。
+news_items の各項目:
+- category: 例「AIモデル」「AIエージェント」「OS・端末AI」「AI検索」「開発者ツール」「AI半導体」「セキュリティ・規制」「Apple」「Google」「OpenAI」「Anthropic」「Microsoft」「NVIDIA」など。
+- title: ニュース見出し。毎日読みやすい短い見出しにする。
+- line_summary: LINE用の概要。2〜3文で、何が起きたかが分かる長さにする。
+- summary_points: 詳細版用の3行要約。必ず3件を目安にする。
+- published_timing: 「過去24時間以内」「過去48時間以内」「公式発表日: YYYY-MM-DD」など、古いニュースを最新扱いしない書き方にする。
+- importance: 「高」「中」「低」のいずれか。
+- reliability: 「公式」「大手報道」「専門メディア」「噂」のいずれか。噂の場合はtitleまたはanalysisに必ず「噂」または「未確認情報」と書く。
+- user_meaning: 個人の関心、技術トレンド、製品体験、主要企業動向の理解として何を意味するかを書く。kintone、社内業務改善、業務フロー設計、WWDC資料作成向け観点は入れない。
+- analysis: 解釈・評価。事実と推測を分けて書く。
+- outlook: 今後の見通し。推測は「見通し」と分かるように書く。
+- source_url: 無料で確認できるソースURL。URLがないニュースは原則採用しない。
+
+overall_summary:
+- conclusion: 今日の全体傾向を2〜4文で説明する。単なる箇条書きではなく、今日のAI・ITニュース全体が何を示しているのかを書く。
+- key_points: 詳細版の「今日の結論」に使う要点を3〜5件。
+
+must_read:
+- 1〜3本。
+- 原則として `news_items` に含めたニュースのURLから選ぶ。
+- LINE短縮版と詳細版で同じ順序にする。
+
+deep_dive_candidates:
+- 3〜5件。
+- 今後追うべき理由が分かる短い文にする。
+
+editor_note:
+- 今日のニュースの読み方を1〜3文で書く。
+- ニュースが少ない日、噂が多い日、公式発表が少ない日などはここに明記する。
+- 特に補足がなければ「特になし」と書く。
+
+line_message:
+必ず次の固定テンプレートで作る。見出し名、順番、括弧を変えない。
 
 【今日の結論】
-{{今日の全体傾向を2〜4文で説明する。単なる箇条書きではなく、今日のAI・ITニュース全体が何を示しているのかを書く。}}
+{{overall_summary.conclusion と同じ内容。2〜4文。}}
 
 【重要ニュース】
 
-1. {{カテゴリ}}｜{{ニュース見出し}}
-    概要：{{何が起きたかを2〜3文で説明}}
-    重要度：{{高/中/低}}
-    信頼度：{{公式/大手報道/専門メディア/噂}}
-    意味：{{このニュースがAI・ITの流れとして何を意味するかを1〜2文で説明}}
-2. {{カテゴリ}}｜{{ニュース見出し}}
-    概要：{{何が起きたかを2〜3文で説明}}
-    重要度：{{高/中/低}}
-    信頼度：{{公式/大手報道/専門メディア/噂}}
-    意味：{{このニュースがAI・ITの流れとして何を意味するかを1〜2文で説明}}
-3. {{カテゴリ}}｜{{ニュース見出し}}
-    概要：{{何が起きたかを2〜3文で説明}}
-    重要度：{{高/中/低}}
-    信頼度：{{公式/大手報道/専門メディア/噂}}
-    意味：{{このニュースがAI・ITの流れとして何を意味するかを1〜2文で説明}}
+1. {{news_items[0].category}}｜{{news_items[0].title}}
+    概要：{{news_items[0].line_summary}}
+    重要度：{{news_items[0].importance}}
+    信頼度：{{news_items[0].reliability}}
+    意味：{{news_items[0].user_meaning}}
+2. {{news_items[1].category}}｜{{news_items[1].title}}
+    概要：{{news_items[1].line_summary}}
+    重要度：{{news_items[1].importance}}
+    信頼度：{{news_items[1].reliability}}
+    意味：{{news_items[1].user_meaning}}
 
-{{重要ニュースが4本目・5本目まで必要な場合は、同じ形式で続ける。不要なら出さない。}}
+{{news_items の件数に応じて同じ形式で続ける。最大5本。不要なら出さない。}}
 
 【今日読むべき記事】
 
-1. {{記事タイトル}}
-    理由：{{なぜ読むべきかを1〜2文で説明}}
-    URL：{{URL}}
-2. {{記事タイトル}}
-    理由：{{なぜ読むべきかを1〜2文で説明}}
-    URL：{{URL}}
+1. {{must_read[0].title}}
+    理由：{{must_read[0].reason}}
+    URL：{{must_read[0].url}}
 
-{{3本目が必要な場合は同じ形式で続ける。不要なら出さない。}}
+{{must_read の件数に応じて同じ形式で続ける。最大3本。不要なら「本日は該当なし」と書く。}}
 
 【補足】
-{{ニュースが少ない日、噂が多い日、公式発表が少ない日など、今日のニュースの読み方に関する補足を1〜3文で書く。不要なら「特になし」と書く。}}
+{{editor_note}}
 
 詳細版: {detail_url}
 
-LINE短縮版のルール:
-- 見出しは必ず「【今日の結論】」「【重要ニュース】」「【今日読むべき記事】」「【補足】」「詳細版: URL」にする。
-- 見出しの順番を変えない。
-- Markdownの表は使わない。
-- 箇条書きは使ってよいが、毎回テンプレートに合わせる。
-- 重要ニュースごとに「概要」「重要度」「信頼度」「意味」を必ず入れる。
-- 詳細版リンクは必ず {detail_url} を使う。
-- line_messageには詳細版全文を入れない。
-- ただし、短すぎる要約にしない。LINEで読める範囲で、文脈が分かる長さにする。
-- ニュースが少ない場合は、重要ニュースを3本未満にしてもよい。その場合は【補足】で「本日は条件に合う重要ニュースが少なめです」と明記する。
-- 形式が崩れそうな場合でも、必ず上記テンプレートを優先する。
-
-詳細版 detailed_markdown:
-以下の構成を日本語Markdownで作る。
-詳細版は現在の構成を維持しつつ、文章量は現在より長めでよい。
-各ニュースの背景、解釈、今後の見通しを厚めに書く。
+detailed_markdown:
+必ず次の固定テンプレートで作る。LINE短縮版の重要ニュースと同じ順序にする。
 
 # AIニュース詳細版｜YYYY年MM月DD日 7:00 JST
 
 ## 今日の結論
-- 今日の全体傾向を3〜5行で要約
-- 特に重要なニュースを1〜3件
-- AI・IT技術全体の流れとして何が見えているかを書く
+- {{overall_summary.key_points[0]}}
+- {{overall_summary.key_points[1]}}
+- {{overall_summary.key_points[2]}}
 
-## Apple
-各ニュースに、見出し、3行要約、公開タイミング、重要度、信頼度、
-自分向けの意味、解釈・評価、今後の見通し、ソースURLを含める。
-Apple関連で重要ニュースが少ない日は、無理に水増しせず「本日はApple関連の重要ニュースは少なめ」と書く。
+## 重要ニュース（LINEと同じ順序）
 
-## Google
-同上。
+### 1. {{news_items[0].category}}｜{{news_items[0].title}}
+- 3行要約:
+  - {{news_items[0].summary_points[0]}}
+  - {{news_items[0].summary_points[1]}}
+  - {{news_items[0].summary_points[2]}}
+- 公開タイミング: {{news_items[0].published_timing}}
+- 重要度: {{news_items[0].importance}}
+- 信頼度: {{news_items[0].reliability}}
+- 自分向けの意味: {{news_items[0].user_meaning}}
+- 解釈・評価: {{news_items[0].analysis}}
+- 今後の見通し: {{news_items[0].outlook}}
+- ソースURL: {{news_items[0].source_url}}
 
-## Other AI
-OpenAI、Anthropic、Microsoft、Meta、xAI、Perplexity、NVIDIA、AMD、Intel、Qualcomm、Arm、AI搭載端末・OS、AI開発者ツール、AI検索、AI規制・セキュリティなどをまとめる。
-各ニュースに、見出し、3行要約、公開タイミング、重要度、信頼度、自分向けの意味、解釈・評価、今後の見通し、ソースURLを含める。
+{{news_items の件数に応じて同じ形式で続ける。}}
 
 ## 今日読むべき記事
-1〜3本。読むべき理由とURLを示す。
+1. {{must_read[0].title}}
+   - 理由: {{must_read[0].reason}}
+   - URL: {{must_read[0].url}}
 
 ## 深掘り候補
-3〜5件。今後追うべき理由を添える。
+- {{deep_dive_candidates[0]}}
+- {{deep_dive_candidates[1]}}
+- {{deep_dive_candidates[2]}}
 
-出力品質:
-- LINE短縮版と詳細版で、重要ニュースの選定が大きく矛盾しないようにする。
-- LINE短縮版は定型フォーマットを最優先する。
-- 詳細版は読み物として自然にする。
-- 重要度と信頼度を必ず明記する。
-- URLがないニュースは原則採用しない。
-- ソースが弱い場合は信頼度を下げ、噂・未確認情報として扱う。
-- 古いニュースを最新ニュースのように扱わない。
-- 過去24時間に限定しすぎて重要ニュースが少ない場合は、過去48時間以内まで広げてもよいが、その場合は「過去48時間以内」と分かるようにする。
+## 補足
+{{editor_note}}
 
-実装上の注意:
-- Structured Outputsのスキーマを壊さない。必ず date_jst, line_message, detailed_markdown, sources, must_read, deep_dive_candidates を含むJSONを返す。
-- line_message は上記テンプレートそのものに従わせる。
-- detailed_markdown は既存のMarkdown生成・HTML生成処理と互換性を保つ。
-- {date_jst} と {detail_url} の埋め込みは既存の仕組みを維持する。
+重要な品質ルール:
+- `news_items` の順序を、LINE短縮版・詳細版・must_read候補の基準にする。
+- LINE短縮版と詳細版で、タイトル、重要度、信頼度、URLを変えない。
+- 詳細版だけに重要ニュースを追加したり、LINEだけに重要ニュースを追加したりしない。
+- 詳細版の文章量はLINEより長くしてよいが、ニュースの選定と順序は変えない。
+- Markdownの表は使わない。
+- 返答JSONには必ず date_jst, overall_summary, news_items, line_message, detailed_markdown, sources, must_read, deep_dive_candidates, editor_note を含める。
 
 返答はJSONだけにしてください。前後に説明文やMarkdownコードフェンスを書かないでください。
 """.strip()
@@ -312,33 +378,286 @@ def _briefing_from_dict(
     date_jst: str,
     detail_url: str,
 ) -> Briefing:
-    line_message = str(data.get("line_message", "")).strip()
-    detailed_markdown = str(data.get("detailed_markdown", "")).strip()
-    if detail_url and detail_url not in line_message:
-        line_message = f"{line_message}\n\n詳細版: {detail_url}".strip()
+    news_items = _normalize_news_items(data.get("news_items", []))
+    overall_summary = _normalize_overall_summary(data.get("overall_summary", {}), news_items)
+    must_read = _normalize_must_read(data.get("must_read", []), news_items)
+    deep_dive_candidates = _clean_string_list(data.get("deep_dive_candidates", []), limit=5)
+    if not deep_dive_candidates:
+        deep_dive_candidates = [
+            "AIモデルとエージェント機能の次の更新",
+            "OS・端末へのオンデバイスAI統合",
+            "AI検索と開発者向けツールの実用化",
+        ]
+    editor_note = _clean_text(data.get("editor_note")) or "特になし"
 
-    if not line_message or not detailed_markdown:
-        raise ValueError("line_messageまたはdetailed_markdownが空です")
+    line_message = _render_line_message(
+        overall_summary=overall_summary,
+        news_items=news_items,
+        must_read=must_read,
+        editor_note=editor_note,
+        detail_url=detail_url,
+    )
+    detailed_markdown = _render_detailed_markdown(
+        date_jst=date_jst,
+        overall_summary=overall_summary,
+        news_items=news_items,
+        must_read=must_read,
+        deep_dive_candidates=deep_dive_candidates,
+        editor_note=editor_note,
+    )
+    sources = _deduplicate_strings(
+        [str(url) for url in data.get("sources", []) if str(url).strip()]
+        + [item["source_url"] for item in news_items]
+    )
 
     return Briefing(
         date_jst=str(data.get("date_jst") or date_jst),
         line_message=line_message,
         detailed_markdown=detailed_markdown,
-        sources=[str(url) for url in data.get("sources", []) if str(url).strip()],
-        must_read=[
-            {
-                "title": str(item.get("title", "")),
-                "reason": str(item.get("reason", "")),
-                "url": str(item.get("url", "")),
-            }
-            for item in data.get("must_read", [])
-            if isinstance(item, dict)
-        ],
-        deep_dive_candidates=[
-            str(item) for item in data.get("deep_dive_candidates", []) if str(item).strip()
-        ],
+        sources=sources,
+        must_read=must_read,
+        deep_dive_candidates=deep_dive_candidates,
         is_fallback=False,
     )
+
+
+def _normalize_news_items(raw_items: Any) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    if not isinstance(raw_items, list):
+        return items
+
+    for raw in raw_items[:5]:
+        if not isinstance(raw, dict):
+            continue
+        title = _clean_text(raw.get("title"))
+        source_url = _clean_text(raw.get("source_url"))
+        if not title or not source_url:
+            continue
+
+        line_summary = _clean_text(raw.get("line_summary")) or "詳細はソース記事を確認してください。"
+        summary_points = _clean_string_list(raw.get("summary_points", []), limit=3)
+        while len(summary_points) < 3:
+            summary_points.append(line_summary)
+
+        items.append(
+            {
+                "category": _clean_text(raw.get("category")) or "AI・IT",
+                "title": title,
+                "line_summary": line_summary,
+                "summary_points": summary_points[:3],
+                "published_timing": _clean_text(raw.get("published_timing")) or "公開タイミング未確認",
+                "importance": _normalize_choice(raw.get("importance"), {"高", "中", "低"}, "中"),
+                "reliability": _normalize_choice(
+                    raw.get("reliability"),
+                    {"公式", "大手報道", "専門メディア", "噂"},
+                    "専門メディア",
+                ),
+                "user_meaning": _clean_text(raw.get("user_meaning"))
+                or "AI・ITの流れを把握するうえで確認しておきたいニュースです。",
+                "analysis": _clean_text(raw.get("analysis")) or "現時点では追加の評価材料を確認中です。",
+                "outlook": _clean_text(raw.get("outlook")) or "今後の公式発表や続報を確認します。",
+                "source_url": source_url,
+            }
+        )
+    return items
+
+
+def _normalize_overall_summary(raw: Any, news_items: list[dict[str, Any]]) -> dict[str, Any]:
+    if not isinstance(raw, dict):
+        raw = {}
+    conclusion = _clean_text(raw.get("conclusion"))
+    if not conclusion:
+        conclusion = (
+            "本日は条件に合う重要ニュースが少なめです。"
+            if not news_items
+            else "今日のAI・ITニュースは、重要な技術更新を中心に確認する日です。"
+        )
+    key_points = _clean_string_list(raw.get("key_points", []), limit=5)
+    if not key_points:
+        key_points = [conclusion]
+    return {"conclusion": conclusion, "key_points": key_points}
+
+
+def _normalize_must_read(
+    raw_items: Any,
+    news_items: list[dict[str, Any]],
+) -> list[dict[str, str]]:
+    url_to_item = {item["source_url"]: item for item in news_items}
+    selected_urls: set[str] = set()
+    raw_by_url: dict[str, dict[str, str]] = {}
+
+    if isinstance(raw_items, list):
+        for raw in raw_items:
+            if not isinstance(raw, dict):
+                continue
+            url = _clean_text(raw.get("url"))
+            if not url or url not in url_to_item:
+                continue
+            selected_urls.add(url)
+            raw_by_url[url] = {
+                "title": _clean_text(raw.get("title")),
+                "reason": _clean_text(raw.get("reason")),
+                "url": url,
+            }
+
+    if not selected_urls:
+        selected_urls = {item["source_url"] for item in news_items[: min(3, len(news_items))]}
+
+    result: list[dict[str, str]] = []
+    for item in news_items:
+        url = item["source_url"]
+        if url not in selected_urls:
+            continue
+        raw = raw_by_url.get(url, {})
+        result.append(
+            {
+                "title": item["title"],
+                "reason": raw.get("reason")
+                or "今日の重要ニュース全体を把握する起点になるため。",
+                "url": url,
+            }
+        )
+        if len(result) >= 3:
+            break
+    return result
+
+
+def _render_line_message(
+    *,
+    overall_summary: dict[str, Any],
+    news_items: list[dict[str, Any]],
+    must_read: list[dict[str, str]],
+    editor_note: str,
+    detail_url: str,
+) -> str:
+    lines: list[str] = [
+        "【今日の結論】",
+        str(overall_summary["conclusion"]),
+        "",
+        "【重要ニュース】",
+        "",
+    ]
+
+    if news_items:
+        for index, item in enumerate(news_items, start=1):
+            lines.extend(
+                [
+                    f"{index}. {item['category']}｜{item['title']}",
+                    f"    概要：{item['line_summary']}",
+                    f"    重要度：{item['importance']}",
+                    f"    信頼度：{item['reliability']}",
+                    f"    意味：{item['user_meaning']}",
+                ]
+            )
+    else:
+        lines.append("本日は条件に合う重要ニュースが少なめです。")
+
+    lines.extend(["", "【今日読むべき記事】", ""])
+    if must_read:
+        for index, item in enumerate(must_read, start=1):
+            lines.extend(
+                [
+                    f"{index}. {item['title']}",
+                    f"    理由：{item['reason']}",
+                    f"    URL：{item['url']}",
+                ]
+            )
+    else:
+        lines.append("本日は該当なし。")
+
+    lines.extend(["", "【補足】", editor_note or "特になし", "", f"詳細版: {detail_url}"])
+    return "\n".join(lines).strip()
+
+
+def _render_detailed_markdown(
+    *,
+    date_jst: str,
+    overall_summary: dict[str, Any],
+    news_items: list[dict[str, Any]],
+    must_read: list[dict[str, str]],
+    deep_dive_candidates: list[str],
+    editor_note: str,
+) -> str:
+    lines: list[str] = [
+        f"# AIニュース詳細版｜{_detail_title_date(date_jst)}",
+        "",
+        "## 今日の結論",
+    ]
+    lines.extend(f"- {point}" for point in overall_summary["key_points"])
+    lines.extend(["", "## 重要ニュース（LINEと同じ順序）", ""])
+
+    if news_items:
+        for index, item in enumerate(news_items, start=1):
+            lines.extend(
+                [
+                    f"### {index}. {item['category']}｜{item['title']}",
+                    "- 3行要約:",
+                ]
+            )
+            lines.extend(f"  - {point}" for point in item["summary_points"])
+            lines.extend(
+                [
+                    f"- 公開タイミング: {item['published_timing']}",
+                    f"- 重要度: {item['importance']}",
+                    f"- 信頼度: {item['reliability']}",
+                    f"- 自分向けの意味: {item['user_meaning']}",
+                    f"- 解釈・評価: {item['analysis']}",
+                    f"- 今後の見通し: {item['outlook']}",
+                    f"- ソースURL: {item['source_url']}",
+                    "",
+                ]
+            )
+    else:
+        lines.extend(["本日は条件に合う重要ニュースが少なめです。", ""])
+
+    lines.extend(["## 今日読むべき記事"])
+    if must_read:
+        for index, item in enumerate(must_read, start=1):
+            lines.extend(
+                [
+                    f"{index}. {item['title']}",
+                    f"   - 理由: {item['reason']}",
+                    f"   - URL: {item['url']}",
+                ]
+            )
+    else:
+        lines.append("- 本日は該当なし。")
+
+    lines.extend(["", "## 深掘り候補"])
+    lines.extend(f"- {item}" for item in deep_dive_candidates)
+    lines.extend(["", "## 補足", editor_note or "特になし", ""])
+    return "\n".join(lines).strip() + "\n"
+
+
+def _detail_title_date(date_jst: str) -> str:
+    date_part = str(date_jst).split()[0] if date_jst else ""
+    return f"{date_part} 7:00 JST" if date_part else "7:00 JST"
+
+
+def _clean_text(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _clean_string_list(value: Any, *, limit: int) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [_clean_text(item) for item in value if _clean_text(item)][:limit]
+
+
+def _normalize_choice(value: Any, allowed: set[str], default: str) -> str:
+    text = _clean_text(value)
+    return text if text in allowed else default
+
+
+def _deduplicate_strings(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = _clean_text(value)
+        if text and text not in seen:
+            result.append(text)
+            seen.add(text)
+    return result
 
 
 def _fallback_briefing(
@@ -350,25 +669,24 @@ def _fallback_briefing(
     error_message = type(error).__name__ if error else "UnknownError"
     line_message = (
         "【今日の結論】\n"
-        "本日はAIニュース生成に失敗しました。GitHub Actionsのログを確認してください。\n\n"
+        "本日はAIニュース生成に失敗しました。GitHub Actionsのログを確認してください。"
+        "通常配信としては扱わず、バックアップ実行で再試行します。\n\n"
         "【重要ニュース】\n"
         "本日は条件に合う重要ニュースが少なめです。\n\n"
+        "【今日読むべき記事】\n"
+        "本日は該当なし。\n\n"
+        "【補足】\n"
+        f"エラー種別: {error_message}\n\n"
         f"詳細版: {detail_url}"
     )
-    detailed_markdown = f"""# AIニュース詳細版｜{date_jst} JST
+    detailed_markdown = f"""# AIニュース詳細版｜{_detail_title_date(date_jst)}
 
 ## 今日の結論
 - 本日はOpenAI APIまたはJSON解析でエラーが発生したため、通常のニュース収集結果を生成できませんでした。
 - GitHub ActionsのログでOpenAI API、レート制限、ネットワークエラー、JSONパース失敗を確認してください。
 - 本日は条件に合う重要ニュースが少なめです。
 
-## Apple
-- 生成失敗のため掲載なし。
-
-## Google
-- 生成失敗のため掲載なし。
-
-## Other AI
+## 重要ニュース（LINEと同じ順序）
 - 生成失敗のため掲載なし。
 
 ## 今日読むべき記事

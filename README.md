@@ -1,12 +1,12 @@
 # 毎朝AIニュースをLINEに届けるアプリ
 
-このリポジトリは、毎朝7:00 JSTにAIニュースを収集し、日本語で要約してLINEへ通知するPythonアプリです。詳細版はGitHub PagesでHTMLとして公開します。
+このリポジトリは、毎朝7時台 JSTにAIニュースを収集し、日本語で要約してLINEへ通知するPythonアプリです。詳細版はGitHub PagesでHTMLとして公開します。
 
 GitHubを初めて使う人が上から順番に作業できるように、かなり丁寧に書いています。
 
 ## 1. このアプリでできること
 
-- 毎朝7:00 JSTに自動実行します。
+- 毎朝7:07 JSTに自動実行し、念のため7:37 JSTにもバックアップ実行します。
 - Apple / Google / OpenAI / Anthropic / Microsoft / NVIDIA / AI搭載端末・OS のニュースを集めます。
 - OpenAI Responses APIの `web_search` toolでニュースを探し、OpenAI APIで日本語要約します。
 - LINEには短縮版だけを送ります。
@@ -30,12 +30,13 @@ LINEに届く内容は次の4つだけです。
 
 流れは次の通りです。
 
-1. GitHub Actionsが毎日22:00 UTCに起動します。
-2. 22:00 UTCは日本時間の翌朝7:00です。
+1. GitHub Actionsが毎日22:07 UTCに起動します。
+2. 22:07 UTCは日本時間の翌朝7:07です。
 3. `main.py` がOpenAI APIでニュースを収集・要約します。
 4. `docs/YYYY-MM-DD.html` と `docs/latest.html` を作ります。
 5. LINE Messaging APIで短縮版を送ります。
 6. 生成したHTMLをGitHubへcommit/pushします。
+7. 22:37 UTCにもバックアップ実行しますが、同じ日付の送信済みマーカーがある場合は二重送信せずに終了します。
 
 ## 3. 必要なもの
 
@@ -277,22 +278,27 @@ https://<owner>.github.io/<repo>/
 4. LINE Messaging APIへの送信がHTTP 200で成功しているか
 5. GitHub PagesのURLが正しいか
 
-## 14. 毎朝7:00 JSTに動く仕組み
+## 14. 毎朝7時台 JSTに動く仕組み
 
 GitHub Actionsの設定は `.github/workflows/daily_ai_news.yml` にあります。
 
 ```yaml
 schedule:
-  - cron: "0 22 * * *"
+  - cron: "7 22 * * *"
+  - cron: "37 22 * * *"
 ```
 
 GitHub ActionsのcronはUTCで書きます。日本時間はUTCより9時間進んでいます。
 
-- 22:00 UTC
+- 22:07 UTC
 - 9時間足す
-- 翌朝 7:00 JST
+- 翌朝 7:07 JST
 
-そのため、毎日22:00 UTCに実行すると、日本では毎朝7:00に動きます。
+そのため、毎日22:07 UTCに実行すると、日本では毎朝7:07に動きます。
+
+GitHub Actionsの定期実行は、毎時0分付近で混雑して遅れたり、まれに実行されないことがあります。そのため、このアプリでは毎時0分を避けて `7 22 * * *` にし、さらに `37 22 * * *` をバックアップとして追加しています。
+
+バックアップ実行で同じニュースが2回LINEに届かないように、schedule実行でLINE送信が完全成功した場合だけ `docs/.daily_ai_news_sent_YYYY-MM-DD` という送信済みマーカーを作ります。7:37 JSTのバックアップ実行時にこのマーカーがあれば、ニュース生成もLINE送信もせずに正常終了します。手動実行は確認用なので、このマーカーがあっても従来通り実行できます。
 
 ## 15. LINEに通知が来ない場合の確認ポイント
 
@@ -427,7 +433,8 @@ https://your-name.github.io/daily-ai-news-line/
 
 ```yaml
 schedule:
-  - cron: "0 22 * * *"
+  - cron: "7 22 * * *"
+  - cron: "37 22 * * *"
 ```
 
 `workflow_dispatch` を残せば、手動実行だけはできます。
@@ -438,7 +445,7 @@ schedule:
 
 このアプリは2つの部分に分かれます。
 
-- GitHub Actions: 毎朝7:00 JSTにニュースを作り、詳細版HTMLを `docs` ディレクトリへ保存し、LINEへ送ります。
+- GitHub Actions: 毎朝7:07 JSTにニュースを作り、詳細版HTMLを `docs` ディレクトリへ保存し、LINEへ送ります。7:37 JSTのバックアップ実行では、送信済みマーカーがある場合は二重送信しません。
 - Google Apps Script: LINE公式アカウントのWebhookを受け取り、友だち追加、登録申請、承認、拒否、承認済みユーザー一覧APIを担当します。
 
 友だち追加だけではニュースは届きません。管理者が承認した人だけに届きます。

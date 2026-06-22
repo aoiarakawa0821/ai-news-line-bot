@@ -6,6 +6,7 @@ import logging
 
 from approved_users import resolve_delivery_targets
 from config import load_config, today_jst
+from daily_run_guard import already_sent_today, is_scheduled_run, write_sent_marker
 from line_sender import send_line_message_to_many
 from news_briefing import generate_news_briefing
 from site_generator import generate_site
@@ -28,6 +29,15 @@ def main() -> None:
     date_slug = now.strftime("%Y-%m-%d")
     date_label = now.strftime("%Y年%m月%d日 %H:%M")
     detail_url = build_detail_url(config.site_base_url, date_slug)
+    scheduled_run = is_scheduled_run()
+
+    if scheduled_run and already_sent_today(date_slug):
+        logger.info(
+            "本日分は送信済みマーカーがあるため、schedule実行をスキップします。date=%s",
+            date_slug,
+        )
+        logger.info("AIニュース生成処理が完了しました。")
+        return
 
     logger.info("利用モデル: %s", config.openai_model)
     logger.info("詳細版URL: %s", detail_url or "未設定")
@@ -68,6 +78,22 @@ def main() -> None:
         message=line_message,
     )
     logger.info("LINE送信結果: success=%s failure=%s", summary.success_count, summary.failure_count)
+
+    if scheduled_run and summary.success_count > 0 and summary.failure_count == 0:
+        marker = write_sent_marker(
+            date_slug=date_slug,
+            delivery_mode=delivery_targets.mode,
+            target_count=len(delivery_targets.to_ids),
+            success_count=summary.success_count,
+            failure_count=summary.failure_count,
+        )
+        logger.info("本日分の送信済みマーカーを作成しました。file=%s", marker)
+    elif scheduled_run:
+        logger.warning(
+            "schedule実行ですがLINE送信が完全成功ではないため、送信済みマーカーは作成しません。success=%s failure=%s",
+            summary.success_count,
+            summary.failure_count,
+        )
 
     logger.info("AIニュース生成処理が完了しました。")
 

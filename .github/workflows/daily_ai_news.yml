@@ -2,11 +2,16 @@ name: daily_ai_news
 
 on:
   schedule:
-    - cron: "0 22 * * *"
+    - cron: "7 22 * * *"
+    - cron: "37 22 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: daily-ai-news-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   daily-ai-news:
@@ -15,6 +20,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5

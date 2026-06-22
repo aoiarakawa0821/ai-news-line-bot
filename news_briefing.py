@@ -62,6 +62,7 @@ class Briefing:
     sources: list[str]
     must_read: list[dict[str, str]]
     deep_dive_candidates: list[str]
+    is_fallback: bool = False
 
 
 def generate_news_briefing(
@@ -336,6 +337,7 @@ def _briefing_from_dict(
         deep_dive_candidates=[
             str(item) for item in data.get("deep_dive_candidates", []) if str(item).strip()
         ],
+        is_fallback=False,
     )
 
 
@@ -391,4 +393,5 @@ def _fallback_briefing(
             "GitHub Secretsの設定確認",
             "LINE Messaging APIの送信ログ確認",
         ],
+        is_fallback=True,
     )

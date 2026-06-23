@@ -2,6 +2,7 @@ const SHEET_NAME = 'users';
 const STATUS_PENDING = 'pending';
 const STATUS_APPROVED = 'approved';
 const STATUS_REJECTED = 'rejected';
+const DAILY_NEWS_DISPATCH_FUNCTION = 'dispatchDailyAiNewsWorkflow';
 const HEADERS = [
   'userId',
   'displayName',
@@ -344,6 +345,89 @@ function notifyAdmin_(text) {
   push_(adminUserId, text);
 }
 
+function dispatchDailyAiNewsWorkflow() {
+  try {
+    const repository = getRequiredProperty_('GITHUB_REPOSITORY');
+    const token = getRequiredProperty_('GITHUB_DISPATCH_TOKEN');
+    const workflowFile = getProperty_('GITHUB_WORKFLOW_FILE') || 'daily_ai_news.yml';
+    const ref = getProperty_('GITHUB_WORKFLOW_REF') || 'main';
+    const url =
+      'https://api.github.com/repos/' +
+      encodeRepositoryPath_(repository) +
+      '/actions/workflows/' +
+      encodeURIComponent(workflowFile) +
+      '/dispatches';
+
+    const response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      payload: JSON.stringify({
+        ref: ref,
+        inputs: {
+          scheduled_dispatch: 'true',
+        },
+      }),
+      muteHttpExceptions: true,
+    });
+
+    const status = response.getResponseCode();
+    if (status !== 204) {
+      const body = safeResponseBody_(response);
+      console.error('GitHub workflow_dispatch failed. status=' + status + ' body=' + body);
+      notifyAdmin_(
+        'GitHub Actionsの起動に失敗しました。\n' +
+        'status=' + status + '\n' +
+        'GITHUB_DISPATCH_TOKEN、GITHUB_REPOSITORY、workflow名を確認してください。'
+      );
+      throw new Error('workflow_dispatch failed. status=' + status);
+    }
+
+    console.log('GitHub workflow_dispatch accepted. repository=' + repository + ' workflow=' + workflowFile);
+  } catch (error) {
+    console.error('dispatchDailyAiNewsWorkflow error: ' + safeError_(error));
+    notifyAdmin_('GitHub Actionsの定期起動処理でエラーが発生しました。GASの実行ログを確認してください。');
+    throw error;
+  }
+}
+
+function setupDailyAiNewsWorkflowTriggers() {
+  deleteDailyAiNewsWorkflowTriggers();
+  ScriptApp.newTrigger(DAILY_NEWS_DISPATCH_FUNCTION)
+    .timeBased()
+    .inTimezone('Asia/Tokyo')
+    .everyDays(1)
+    .atHour(7)
+    .nearMinute(7)
+    .create();
+  ScriptApp.newTrigger(DAILY_NEWS_DISPATCH_FUNCTION)
+    .timeBased()
+    .inTimezone('Asia/Tokyo')
+    .everyDays(1)
+    .atHour(7)
+    .nearMinute(37)
+    .create();
+  console.log('Daily AI news workflow triggers created at around 07:07 and 07:37 JST.');
+}
+
+function deleteDailyAiNewsWorkflowTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === DAILY_NEWS_DISPATCH_FUNCTION) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+  console.log('Daily AI news workflow triggers deleted.');
+}
+
+function testDispatchDailyAiNewsWorkflow() {
+  dispatchDailyAiNewsWorkflow();
+}
+
 function logLineApiFailure_(response, label) {
   const status = response.getResponseCode();
   if (status >= 400) {
@@ -434,6 +518,31 @@ function formatUserLine_(row) {
 
 function getProperty_(name) {
   return PropertiesService.getScriptProperties().getProperty(name) || '';
+}
+
+function getRequiredProperty_(name) {
+  const value = getProperty_(name);
+  if (!value) {
+    throw new Error(name + ' is not set');
+  }
+  return value;
+}
+
+function encodeRepositoryPath_(repository) {
+  return String(repository || '')
+    .split('/')
+    .map(function(part) {
+      return encodeURIComponent(part);
+    })
+    .join('/');
+}
+
+function safeResponseBody_(response) {
+  try {
+    return String(response.getContentText() || '').slice(0, 1000);
+  } catch (error) {
+    return '(body unavailable)';
+  }
 }
 
 function now_() {

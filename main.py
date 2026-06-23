@@ -7,7 +7,7 @@ import logging
 from approved_users import resolve_delivery_targets
 from config import load_config, today_jst
 from daily_run_guard import already_sent_today, is_scheduled_run, write_sent_marker
-from line_sender import send_line_message_to_many
+from line_sender import send_line_message, send_line_message_to_many
 from news_briefing import generate_news_briefing
 from site_generator import generate_site
 
@@ -33,7 +33,7 @@ def main() -> None:
 
     if scheduled_run and already_sent_today(date_slug):
         logger.info(
-            "本日分は送信済みマーカーがあるため、schedule実行をスキップします。date=%s",
+            "本日分は送信済みマーカーがあるため、定期実行をスキップします。date=%s",
             date_slug,
         )
         logger.info("AIニュース生成処理が完了しました。")
@@ -55,6 +55,14 @@ def main() -> None:
         docs_dir="docs",
     )
     logger.info("生成ファイル: %s, %s, %s", dated_path, latest_path, index_path)
+
+    if briefing.is_fallback:
+        _notify_admin_about_news_generation_failure(
+            channel_access_token=config.line_channel_access_token,
+            admin_line_to_id=config.line_to_id,
+            detail_url=detail_url,
+        )
+        raise RuntimeError("OpenAIニュース生成に失敗したため、一般配信を中止しました。")
 
     delivery_targets = resolve_delivery_targets(config)
     logger.info(
@@ -106,6 +114,38 @@ def build_detail_url(site_base_url: str, date_slug: str) -> str:
     if not site_base_url:
         return ""
     return f"{site_base_url.rstrip('/')}/{date_slug}.html"
+
+
+def _notify_admin_about_news_generation_failure(
+    *,
+    channel_access_token: str,
+    admin_line_to_id: str,
+    detail_url: str,
+) -> None:
+    logger = logging.getLogger("main")
+    logger.error("OpenAIニュース生成が失敗したため、approvedユーザーへの一般配信を中止します。")
+    if not admin_line_to_id:
+        logger.warning("LINE_TO_IDが未設定のため、管理者へのエラー通知を送信できません。")
+        return
+
+    message = "\n".join(
+        [
+            "【AIニュース生成エラー】",
+            "OpenAI APIのレート制限またはJSON/APIエラーにより、通常のニュース生成に失敗しました。",
+            "安全のため、承認済みユーザー全員への配信は中止しました。",
+            "GitHub ActionsログでOpenAI APIの429、クォータ、OPENAI_MODEL設定を確認してください。",
+            f"詳細版: {detail_url}" if detail_url else "詳細版: 未設定",
+        ]
+    )
+    try:
+        send_line_message(
+            channel_access_token=channel_access_token,
+            to_id=admin_line_to_id,
+            message=message,
+        )
+        logger.info("管理者へニュース生成エラー通知を送信しました。")
+    except Exception:
+        logger.exception("管理者へのニュース生成エラー通知に失敗しました。")
 
 
 def _sent_marker_skip_reason(

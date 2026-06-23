@@ -13,7 +13,9 @@ JST = ZoneInfo("Asia/Tokyo")
 
 
 def is_scheduled_run() -> bool:
-    return os.getenv("GITHUB_EVENT_NAME", "").strip() == "schedule"
+    event_name = os.getenv("GITHUB_EVENT_NAME", "").strip()
+    scheduled_dispatch = os.getenv("SCHEDULED_DISPATCH", "").strip().lower()
+    return event_name == "schedule" or scheduled_dispatch in {"1", "true", "yes"}
 
 
 def marker_path(date_slug: str, docs_dir: str = "docs") -> Path:

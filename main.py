@@ -49,13 +49,6 @@ def main() -> None:
         detail_url=detail_url,
     )
 
-    dated_path, latest_path, index_path = generate_site(
-        detailed_markdown=briefing.detailed_markdown,
-        date_slug=date_slug,
-        docs_dir="docs",
-    )
-    logger.info("生成ファイル: %s, %s, %s", dated_path, latest_path, index_path)
-
     if briefing.is_fallback:
         _notify_admin_about_news_generation_failure(
             channel_access_token=config.line_channel_access_token,
@@ -63,6 +56,13 @@ def main() -> None:
             detail_url=detail_url,
         )
         raise RuntimeError("OpenAIニュース生成に失敗したため、一般配信を中止しました。")
+
+    dated_path, latest_path, index_path = generate_site(
+        detailed_markdown=briefing.detailed_markdown,
+        date_slug=date_slug,
+        docs_dir="docs",
+    )
+    logger.info("生成ファイル: %s, %s, %s", dated_path, latest_path, index_path)
 
     delivery_targets = resolve_delivery_targets(config)
     logger.info(

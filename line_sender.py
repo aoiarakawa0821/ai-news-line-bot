@@ -96,44 +96,30 @@ def split_line_message(message: str) -> list[str]:
     if len(message) <= MAX_LINE_TEXT_LENGTH:
         return [message]
 
-    first = _build_first_message(message)
-    remaining = message
-    for marker in ("【今日読むべき記事】", "今日読むべき記事", "詳細版:"):
-        index = remaining.find(marker)
-        if index > 0:
-            remaining = remaining[index:]
-            break
-
-    chunks = [first]
-    chunks.extend(_split_by_length(remaining, MAX_LINE_TEXT_LENGTH))
+    chunks = list(_split_by_length(message, MAX_LINE_TEXT_LENGTH))
+    detail = _extract_detail_line(message)
+    if detail and chunks and detail not in chunks[0]:
+        chunks = _append_detail_to_first_chunk(chunks, detail)
     return _deduplicate_preserving_order(chunks)
 
 
-def _build_first_message(message: str) -> str:
-    detail = _extract_detail_line(message)
-    reserved = len(detail) + 2 if detail else 0
-    body_budget = max(1000, MAX_LINE_TEXT_LENGTH - reserved)
+def _append_detail_to_first_chunk(chunks: list[str], detail: str) -> list[str]:
+    first = chunks[0].rstrip()
+    suffix = f"\n\n{detail}"
+    first_budget = MAX_LINE_TEXT_LENGTH - len(suffix)
+    if first_budget <= 0:
+        return chunks
 
-    conclusion = _extract_section(message, start="【今日の結論】", end="【重要ニュース】")
-    important = _extract_section(message, start="【重要ニュース】", end="【今日読むべき記事】")
-    first = "\n\n".join(part for part in [conclusion, important] if part).strip()
-    if not first:
-        first = message[:body_budget]
-    if len(first) > body_budget:
-        first = first[: body_budget - 1].rstrip() + "…"
-    if detail and detail not in first:
-        first = f"{first}\n\n{detail}".strip()
-    return first[:MAX_LINE_TEXT_LENGTH]
+    overflow = ""
+    if len(first) > first_budget:
+        overflow = first[first_budget:].lstrip()
+        first = first[:first_budget].rstrip()
 
-
-def _extract_section(message: str, *, start: str, end: str | None) -> str:
-    start_index = message.find(start)
-    if start_index < 0:
-        return ""
-    end_index = len(message) if end is None else message.find(end, start_index + len(start))
-    if end_index < 0:
-        end_index = len(message)
-    return message[start_index:end_index].strip()
+    result = [f"{first}{suffix}".strip()]
+    if overflow:
+        result.extend(_split_by_length(overflow, MAX_LINE_TEXT_LENGTH))
+    result.extend(chunks[1:])
+    return result
 
 
 def _extract_detail_line(message: str) -> str:

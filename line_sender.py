@@ -96,8 +96,9 @@ def split_line_message(message: str) -> list[str]:
     if len(message) <= MAX_LINE_TEXT_LENGTH:
         return [message]
 
-    chunks = list(_split_by_length(message, MAX_LINE_TEXT_LENGTH))
     detail = _extract_detail_line(message)
+    body = _remove_detail_line(message, detail) if detail else message
+    chunks = list(_split_by_length(body, MAX_LINE_TEXT_LENGTH))
     if detail and chunks and detail not in chunks[0]:
         chunks = _append_detail_to_first_chunk(chunks, detail)
     return _deduplicate_preserving_order(chunks)
@@ -130,6 +131,11 @@ def _extract_detail_line(message: str) -> str:
     if index < 0:
         return ""
     return message[index : index + 300].strip()
+
+
+def _remove_detail_line(message: str, detail: str) -> str:
+    lines = [line for line in message.splitlines() if line.strip() != detail]
+    return "\n".join(lines).strip()
 
 
 def _split_by_length(text: str, max_length: int) -> Iterable[str]:

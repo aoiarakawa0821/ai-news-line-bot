@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 CATEGORY_ORDER = ["Apple", "Google", "Microsoft", "Meta / Amazon", "Other AI"]
+LINE_SEPARATOR = "--------------------"
 
 
 BRIEFING_SCHEMA: dict[str, Any] = {
@@ -335,45 +336,57 @@ editor_note:
 
 line_message:
 必ず次の固定テンプレートで作る。見出し名、順番、括弧を変えない。
+スマホのLINE画面で読みやすいように、各大見出しの前に `--------------------` を入れ、1ニュース内の行数を増やしすぎない。
+重要度と信頼度は別々の行にせず、必ず `注目：重要度 / 信頼度` の1行にまとめる。
+該当ニュースがないカテゴリは、必ず `該当なし（24時間以内の主要ニュースなし）` と短く書く。
+
+AIニュースブリーフィング
 
 【今日の結論】
 {{overall_summary.conclusion と同じ内容。2〜4文。}}
 
+--------------------
 【Apple】
 
 1. {{Appleカテゴリのニュース見出し}}
-    概要：{{news_items[0].line_summary}}
-    重要度：{{news_items[0].importance}}
-    信頼度：{{news_items[0].reliability}}
-    意味：{{news_items[0].user_meaning}}
+概要：{{news_items[0].line_summary}}
+注目：{{news_items[0].importance}} / {{news_items[0].reliability}}
+意味：{{news_items[0].user_meaning}}
 
-{{Appleカテゴリのニュースが複数ある場合は同じ形式で続ける。該当なしなら「過去24時間以内に条件に合う主要ニュースはありません。」と書く。}}
+{{Appleカテゴリのニュースが複数ある場合は同じ形式で続ける。該当なしなら「該当なし（24時間以内の主要ニュースなし）」と書く。}}
 
+--------------------
 【Google】
 {{Googleカテゴリのニュース。該当なしなら短く明記。}}
 
+--------------------
 【Microsoft】
 {{Microsoftカテゴリのニュース。該当なしなら短く明記。}}
 
+--------------------
 【Meta / Amazon】
 {{Meta / Amazonカテゴリのニュース。該当なしなら短く明記。}}
 
+--------------------
 【Other AI】
 {{OpenAI、Anthropic、NVIDIA、AI半導体、AIインフラ、規制、その他企業のニュース。該当なしなら短く明記。}}
 
+--------------------
 【今日のMust Read】
 
 1. {{must_read[0].title}}
-    理由：{{must_read[0].reason}}
-    URL：{{must_read[0].url}}
+理由：{{must_read[0].reason}}
+URL：{{must_read[0].url}}
 
 {{must_read の件数に応じて同じ形式で続ける。最大3本。不要なら「本日は該当なし」と書く。}}
 
+--------------------
 【深掘り候補】
 ・{{deep_dive_candidates[0]}}
 ・{{deep_dive_candidates[1]}}
 ・{{deep_dive_candidates[2]}}
 
+--------------------
 【全体所感】
 {{editor_note}}
 
@@ -670,50 +683,53 @@ def _render_line_message(
     detail_url: str,
 ) -> str:
     lines: list[str] = [
+        "AIニュースブリーフィング",
+        "",
         "【今日の結論】",
         str(overall_summary["conclusion"]),
     ]
 
     for category in CATEGORY_ORDER:
-        lines.extend(["", f"【{category}】", ""])
+        lines.extend(["", LINE_SEPARATOR, f"【{category}】"])
         category_items = [
             item for item in news_items if _category_bucket(item.get("category", "")) == category
         ]
         if not category_items:
-            lines.append("過去24時間以内に条件に合う主要ニュースはありません。")
+            lines.append("該当なし（24時間以内の主要ニュースなし）")
             continue
 
         for index, item in enumerate(category_items, start=1):
             lines.extend(
                 [
+                    "",
                     f"{index}. {item['title']}",
-                    f"    概要：{item['line_summary']}",
-                    f"    重要度：{item['importance']}",
-                    f"    信頼度：{item['reliability']}",
-                    f"    意味：{item['user_meaning']}",
+                    f"概要：{item['line_summary']}",
+                    f"注目：{item['importance']} / {item['reliability']}",
+                    f"意味：{item['user_meaning']}",
                 ]
             )
 
-    lines.extend(["", "【今日のMust Read】", ""])
+    lines.extend(["", LINE_SEPARATOR, "【今日のMust Read】"])
     if must_read:
         for index, item in enumerate(must_read, start=1):
             lines.extend(
                 [
+                    "",
                     f"{index}. {item['title']}",
-                    f"    理由：{item['reason']}",
-                    f"    URL：{item['url']}",
+                    f"理由：{item['reason']}",
+                    f"URL：{item['url']}",
                 ]
             )
     else:
         lines.append("本日は該当なし。")
 
-    lines.extend(["", "【深掘り候補】"])
+    lines.extend(["", LINE_SEPARATOR, "【深掘り候補】"])
     if deep_dive_candidates:
         lines.extend(f"・{item}" for item in deep_dive_candidates)
     else:
         lines.append("本日は該当なし。")
 
-    lines.extend(["", "【全体所感】", editor_note or "特になし", "", f"詳細版: {detail_url}"])
+    lines.extend(["", LINE_SEPARATOR, "【全体所感】", editor_note or "特になし", "", f"詳細版: {detail_url}"])
     return "\n".join(lines).strip()
 
 
@@ -860,25 +876,34 @@ def _fallback_briefing(
 ) -> Briefing:
     error_message = type(error).__name__ if error else "UnknownError"
     line_message = (
+        "AIニュースブリーフィング\n\n"
         "【今日の結論】\n"
         "本日はAIニュース生成に失敗しました。GitHub Actionsのログを確認してください。"
         "通常配信としては扱わず、バックアップ実行で再試行します。\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【Apple】\n"
-        "過去24時間以内に条件に合う主要ニュースはありません。\n\n"
+        "該当なし（24時間以内の主要ニュースなし）\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【Google】\n"
-        "過去24時間以内に条件に合う主要ニュースはありません。\n\n"
+        "該当なし（24時間以内の主要ニュースなし）\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【Microsoft】\n"
-        "過去24時間以内に条件に合う主要ニュースはありません。\n\n"
+        "該当なし（24時間以内の主要ニュースなし）\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【Meta / Amazon】\n"
-        "過去24時間以内に条件に合う主要ニュースはありません。\n\n"
+        "該当なし（24時間以内の主要ニュースなし）\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【Other AI】\n"
         "生成失敗のため掲載なし。\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【今日のMust Read】\n"
         "本日は該当なし。\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【深掘り候補】\n"
         "・OpenAI APIの実行ログ確認\n"
         "・GitHub Secretsの設定確認\n"
         "・LINE Messaging APIの送信ログ確認\n\n"
+        f"{LINE_SEPARATOR}\n"
         "【全体所感】\n"
         f"エラー種別: {error_message}\n\n"
         f"詳細版: {detail_url}"

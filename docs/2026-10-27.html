@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIニュース詳細ブリーフィング</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --text: #18202a;
+      --muted: #5f6b7a;
+      --line: #d8dee7;
+      --accent: #0b6bcb;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.75;
+    }
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+    article {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: clamp(18px, 4vw, 40px);
+    }
+    h1, h2, h3 {
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+    h1 {
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      margin: 0 0 1.2rem;
+    }
+    h2 {
+      border-top: 1px solid var(--line);
+      margin-top: 2rem;
+      padding-top: 1.4rem;
+      font-size: 1.35rem;
+    }
+    h3 {
+      font-size: 1.08rem;
+      margin-top: 1.4rem;
+    }
+    a {
+      color: var(--accent);
+      overflow-wrap: anywhere;
+    }
+    li {
+      margin: 0.35rem 0;
+    }
+    code {
+      background: #eef2f7;
+      border-radius: 4px;
+      padding: 0.1rem 0.3rem;
+    }
+    blockquote {
+      margin: 1rem 0;
+      padding-left: 1rem;
+      color: var(--muted);
+      border-left: 4px solid var(--line);
+    }
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+<h1>AIニュース詳細ブリーフィング</h1>
+<p>配信基準時刻：2026年10月27日 7:00 JST</p>
+<h2>Selection basis / 選定基準</h2>
+<ul>
+<li>対象期間：2026-10-26 07:00 JSTから2026-10-27 07:00 JSTまでに公開された記事・公式発表だけを対象とした。</li>
+<li>ソース方針：公式ブログ、公式開発者ドキュメント、規制当局への提出情報を優先し、本文で内容を確認できた情報だけを採用した。</li>
+<li>有料記事の扱い：見出しだけでは採用せず、公式発表またはアクセス可能な本文で主要事実を確認できる場合だけ候補とした。</li>
+<li>除外：株価、決算、投資家評価、M&amp;A観測、内容の薄い転載、24時間より古い記事を除外した。AnthropicのS-1は投資情報ではなく、主要AI企業の資金調達基盤とガバナンスに関わる戦略ニュースとして採用した。</li>
+<li>今日の上位ニュースは、OpenAIの低コストなコンピューター操作対応モデル「GPT-6.1 Terra」と、AnthropicによるS-1公開の2件。ユーザー・開発者への直接的影響を優先し、OpenAIを先に配置した。</li>
+</ul>
+<h2>今日の結論</h2>
+<ul>
+<li>OpenAIが視覚推論とコンピューター操作に対応するGPT-6.1 TerraをAPIで公開した。</li>
+<li>GPT-6.1 Terraは105万トークンのコンテキストと比較的低いAPI価格を組み合わせ、画面操作型エージェントの導入障壁を下げる。</li>
+<li>AnthropicがS-1登録届出書を提出し、Nasdaqへの上場準備を正式化した。</li>
+<li>AIモデル競争は能力だけでなく、推論単価、エージェント実装、計算資源を確保する資本力の競争へ広がっている。</li>
+</ul>
+<h2>Apple</h2>
+<p>過去24時間以内に条件に合う主要ニュースはありません。</p>
+<h2>Google</h2>
+<p>過去24時間以内に条件に合う主要ニュースはありません。</p>
+<h2>Microsoft</h2>
+<p>過去24時間以内に条件に合う主要ニュースはありません。</p>
+<h2>Meta / Amazon</h2>
+<p>過去24時間以内に条件に合う主要ニュースはありません。</p>
+<h2>Other AI</h2>
+<h3>1. OpenAI、画面操作向け「GPT-6.1 Terra」をAPI公開</h3>
+<p>公開タイミング：公式発表日: 2026-10-26（過去24時間以内）<br>
+重要度：高<br>
+信頼度 / ソース種別：公式</p>
+<p>3行要約<br>
+- GPT-6.1 TerraがResponses APIとChat Completions APIで公開された。<br>
+- 視覚推論、製品画像の照合、技術図面の解釈、アプリ画面の操作を主な用途としている。<br>
+- コンテキストは105万トークン、最大出力は12万8,000トークンで、標準料金は入力1ドル・出力5ドル／100万トークン。</p>
+<p>選定理由<br>
+コンピューター操作対応モデルの低価格化は、AIエージェントがアプリの操作手順を代替する流れを加速させる。Responses APIでのツール利用を前提としており、AIが回答生成機能から実行レイヤーへ移る中長期トレンドに直結するため選定した。</p>
+<p>中長期的な意味<br>
+視覚認識、長いコンテキスト、ツール呼び出し、コンピューター操作が低価格モデルに統合されることで、企業は高価な最上位モデルを常用せずに画面操作型エージェントを構築しやすくなる。モデル性能だけでなく、タスク当たりの推論費用と操作精度がプラットフォーム選択を左右する段階に入る。</p>
+<p>あなたにとっての意味<br>
+開発者にとっては、Web操作、社内アプリの自動化、画像を含む文書処理を比較的低コストで試せる選択肢になる。個人ユーザーへの直接提供は確認されていないため、現時点ではChatGPTの新標準モデルではなく、API製品として理解する必要がある。</p>
+<p>解釈・評価<br>
+事実として、Terraは視覚入力、コンピューター操作、Web検索、MCP、コード実行などのツールに対応し、ツール呼び出しにはResponses APIが必要とされている。評価として、入力1ドル・出力5ドルという価格は、画面操作を大量実行するワークロードを狙った設定とみられる。一方、実環境での操作成功率や誤操作率は公式仕様だけでは判断できず、導入前の個別評価が必要である。</p>
+<p>次に起きそうなこと<br>
+今後は、GPT-6.1 Terraを使ったブラウザ操作、業務アプリ自動化、画像照合の実測評価が増える見通し。OpenAIがChatGPTやCodexの既定モデルとして採用するか、エージェント向けの速度・料金階層を追加するかが次の焦点になる。</p>
+<p>ソースURL<br>
+https://developers.openai.com/api/docs/models/gpt-6.1-terra</p>
+<h3>2. AnthropicがS-1公開、上場準備を正式化</h3>
+<p>公開タイミング：公式発表日: 2026-10-26（米国時間、過去24時間以内）<br>
+重要度：高<br>
+信頼度 / ソース種別：公式</p>
+<p>3行要約<br>
+- Anthropicが新規株式公開に向けたForm S-1登録届出書を米SECへ提出した。<br>
+- 同社はNasdaq Global Select Marketに「ANT」の銘柄記号で上場する意向を示した。<br>
+- 募集株式数、価格帯、上場時期は現時点で確定しておらず、登録届出書もまだ発効していない。</p>
+<p>選定理由<br>
+Anthropicは主要な基盤モデル企業であり、上場による資金調達基盤の拡大はClaudeのモデル開発、データセンター、チップ調達、クラウド契約に影響する。AI競争が技術力だけでなく、巨額の計算資源を継続確保できる資本力の競争になっていることを示すため選定した。</p>
+<p>中長期的な意味<br>
+上場が実現すれば、Anthropicは公開市場から資金を調達できる一方、業績開示や株主からの成長要求も強くなる。安全性を重視する企業方針と、モデル開発・インフラ投資を急ぐ競争圧力をどのように両立するかが、Claudeの製品戦略とAI業界のガバナンスに影響する。</p>
+<p>あなたにとっての意味<br>
+Claudeを利用する個人や企業に直ちに料金・機能変更が発生する発表ではない。ただし、今後のモデル公開ペース、API価格、利用上限、クラウド提供範囲、安全方針を理解する上で、Anthropicの資金調達能力と経営構造は重要な観察材料になる。</p>
+<p>解釈・評価<br>
+事実として確認できるのは、S-1の提出、Nasdaqへの上場意向、銘柄記号「ANT」、募集条件が未定であることまでである。解釈として、今回の公開申請は計算資源への長期投資を支える資金源の多様化につながる可能性が高い。ただし、上場の成立時期、調達額、企業価値は公式には確定していない。</p>
+<p>次に起きそうなこと<br>
+今後はSEC審査を経た修正版S-1で、クラウド契約、計算資源への支出、収益構造、リスク要因が更新される見通し。上場条件の決定に加え、公開企業化がAnthropicの安全性方針やモデル提供条件に与える影響が焦点となる。</p>
+<p>ソースURL<br>
+https://www.anthropic.com/news/s1-sec</p>
+<h2>今日のMust Read</h2>
+<ol>
+<li>OpenAI、画面操作向け「GPT-6.1 Terra」をAPI公開<br>
+   - 理由: 低価格、長いコンテキスト、視覚推論、コンピューター操作を組み合わせ、実用的なAIエージェントの設計とコスト構造に直接影響するため。<br>
+   - URL: https://developers.openai.com/api/docs/models/gpt-6.1-terra</li>
+<li>AnthropicがS-1公開、上場準備を正式化<br>
+   - 理由: 主要モデル企業の競争が、モデル能力だけでなく、計算資源を継続確保する資本力とガバナンスの競争へ広がっているため。<br>
+   - URL: https://www.anthropic.com/news/s1-sec</li>
+</ol>
+<h2>深掘り候補</h2>
+<ul>
+<li>GPT-6.1 Terraのコンピューター操作精度と、上位モデルに対するタスク当たり費用を追う。</li>
+<li>105万トークンの長文入力と、27万2,000トークン超で適用される割増料金がエージェント設計に与える影響を検証する。</li>
+<li>Anthropicの修正版S-1で開示される計算資源契約、資金用途、安全性ガバナンスを追跡する。</li>
+</ul>
+<h2>全体所感</h2>
+<p>本日は条件に合う重要ニュースが少なめです。ただし、OpenAIの新モデルはAIエージェントの実装コストを下げ、AnthropicのS-1はその競争を支える資本基盤の巨大化を示しています。能力、価格、計算資源、ガバナンスが一体となってプラットフォーム競争を左右する流れが鮮明です。米国時間の発表が追加されるため、同日中の再実行では選定が変わる可能性があります。</p>
+    </article>
+    <p class="footer">Generated by GitHub Actions</p>
+  </main>
+</body>
+</html>

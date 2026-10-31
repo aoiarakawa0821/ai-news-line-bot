@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIニュース詳細ブリーフィング</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --text: #18202a;
+      --muted: #5f6b7a;
+      --line: #d8dee7;
+      --accent: #0b6bcb;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.75;
+    }
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+    article {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: clamp(18px, 4vw, 40px);
+    }
+    h1, h2, h3 {
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+    h1 {
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      margin: 0 0 1.2rem;
+    }
+    h2 {
+      border-top: 1px solid var(--line);
+      margin-top: 2rem;
+      padding-top: 1.4rem;
+      font-size: 1.35rem;
+    }
+    h3 {
+      font-size: 1.08rem;
+      margin-top: 1.4rem;
+    }
+    a {
+      color: var(--accent);
+      overflow-wrap: anywhere;
+    }
+    li {
+      margin: 0.35rem 0;
+    }
+    code {
+      background: #eef2f7;
+      border-radius: 4px;
+      padding: 0.1rem 0.3rem;
+    }
+    blockquote {
+      margin: 1rem 0;
+      padding-left: 1rem;
+      color: var(--muted);
+      border-left: 4px solid var(--line);
+    }
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+<h1>AIニュース詳細ブリーフィング</h1>
+<p>配信基準時刻：2026年11月01日 7:00 JST</p>
+<h2>Selection basis / 選定基準</h2>
+<ul>
+<li>対象期間：2026-10-31 07:00 JST〜2026-11-01 07:00 JSTに公開または実質更新された記事・公式情報だけを採用。日付のみで時刻を確認できない情報は、期間内の掲載を確認できたものに限定しました。</li>
+<li>ソース方針：公式情報と一次情報を優先し、期間内に公開された専門メディアの記事については、本文とリンク先の公式情報を照合しました。</li>
+<li>有料記事の扱い：見出しだけでは採用せず、本文または信頼できる補強情報で内容を確認できる場合だけ対象としました。今回の採用記事に、本文を確認できない有料記事はありません。</li>
+<li>除外：株価、決算、資金調達、投資家向け情報だけの記事、24時間より古い記事、公開時刻を確認できない転載・要約記事は除外しました。</li>
+<li>今日の上位ニュースは、CursorのClaude Code拡張機能を巡る供給網攻撃、Gemini APIのComputer Use一般提供、Microsoftの小型コンピューター操作モデル公開です。</li>
+</ul>
+<h2>今日の結論</h2>
+<ul>
+<li>GoogleのComputer Use一般提供により、ブラウザ・モバイル・デスクトップを操作するエージェントの本番導入が進みます。</li>
+<li>MicrosoftはGUI操作とターミナル実行を切り替える4Bモデルを公開し、小型・ローカル型エージェントの可能性を広げました。</li>
+<li>CursorではClaude Code拡張機能の悪性版が配布され、AIコーディング環境の供給網セキュリティが現実的な課題になりました。</li>
+<li>OpenAIのPro向け利用枠拡大は、高性能エージェントの競争軸がモデル性能だけでなく価格と使用量にも移っていることを示します。</li>
+</ul>
+<h2>Apple</h2>
+<p>過去24時間以内に条件に合う主要ニュースはありません。</p>
+<h2>Google</h2>
+<h3>1. Gemini APIのComputer Useが一般提供に移行</h3>
+<p>公開タイミング：約11時間前（2026-10-31 07:19 EDT／20:19 JST）<br>
+重要度：高<br>
+信頼度 / ソース種別：専門メディア</p>
+<p>3行要約<br>
+- Gemini APIのComputer Useがプレビューを終え、2種類のAPIで一般提供になりました。<br>
+- モデルが画面を認識してクリックや文字入力などの操作を提案し、クライアント側が実際の操作を実行します。<br>
+- 本番利用への道は開けましたが、安全確認、サンドボックス、操作ログの実装は開発者側に残ります。</p>
+<p>選定理由<br>
+AIエージェントが会話や検索だけでなく、OS・ブラウザ・アプリを直接操作するレイヤーへ移る中長期トレンドに直結します。プレビュー終了は、Computer Useが実験用機能から製品の基盤へ移行する節目になります。</p>
+<p>中長期的な意味<br>
+Webサービスが専用APIを用意していなくても、画面操作を通じて既存業務を自動化できる範囲が広がります。将来的には、アプリごとの操作手順をユーザーが覚える体験から、AIに目的だけを伝える体験へ移る可能性があります。</p>
+<p>あなたにとっての意味<br>
+自動テスト、ブラウザ作業、デスクトップ業務をGeminiで自動化する選択肢が現実的になります。一方、個人情報や決済を扱う操作では、人間の確認と隔離環境がある製品かどうかを確認する必要があります。</p>
+<p>解釈・評価<br>
+事実として、一般提供の対象はInteractions APIとGenerateContent APIで、ブラウザ、モバイル、デスクトップ環境に対応します。ただし、モデルがPCを単独で操作する完成品ではなく、操作の実行環境や安全管理は開発者が構築します。評価としては、一般提供という名称だけで無人運用に適した段階と判断すべきではありません。</p>
+<p>次に起きそうなこと<br>
+見通しとして、Google Cloudや業務アプリと組み合わせたテスト、データ入力、社内業務エージェントが増えると考えられます。今後は操作精度だけでなく、プロンプトインジェクション検知、権限制御、操作の再現・監査機能が競争軸になります。</p>
+<p>ソースURL<br>
+https://jbiznews.com/google-moves-gemini-computer-use-into-general-availability/</p>
+<h2>Microsoft</h2>
+<h3>1. Microsoft、4BのPC操作モデル「Mage-VL-Cowork」を公開</h3>
+<p>公開タイミング：約17時間前に公式モデルページを更新<br>
+重要度：中<br>
+信頼度 / ソース種別：公式</p>
+<p>3行要約<br>
+- Mage-VL-Coworkは、スクリーンショットを使うGUI操作とbashによる処理を統合した4Bモデルです。<br>
+- Microsoft公表値では、OSWorld-Verifiedで66.0％を記録し、Apache-2.0ライセンスで公開されています。<br>
+- 小型化はローカル・オンデバイス型エージェントにつながりますが、任意コマンドを実行できるため隔離環境が必要です。</p>
+<p>選定理由<br>
+AIエージェントが画面上のクリックだけに頼らず、GUIとコード実行を状況に応じて使い分ける方向を示しています。さらに4Bという小型モデルでの公開は、オンデバイスAIとハードウェア要件が購入判断を左右する流れにもつながります。</p>
+<p>中長期的な意味<br>
+GUI操作とターミナル処理の統合により、表計算、ファイル変換、複数アプリ間の業務を少ない操作で完了できる可能性があります。小型モデルの精度が向上すれば、クラウド依存を抑えた企業内エージェントや端末内エージェントが普及しやすくなります。</p>
+<p>あなたにとっての意味<br>
+開発者にとっては、コンパクトなコンピューター操作モデルを検証できる新しい選択肢です。一般ユーザーにとっても、将来のAI PCが端末内でアプリ操作を代行できるかを判断するうえで、小型モデルの性能と必要メモリが重要になります。</p>
+<p>解釈・評価<br>
+事実として、モデルはGUI用のcomputer_useと、シェル・Pythonを扱うbashを一つのポリシーで切り替えます。66.0％という性能値はMicrosoft側の評価であり、独立検証前の数字として扱う必要があります。また、任意コマンドを実行できる設計のため、実用時にはサンドボックスと権限制限が前提です。</p>
+<p>次に起きそうなこと<br>
+見通しとして、GUI専用モデルよりも、API、ターミナル、画面操作を混在させるハイブリッド型エージェントが主流になる可能性があります。今後は、一般的なPCでの推論速度、量子化版の品質、Windows環境での実運用性能が注目点です。</p>
+<p>ソースURL<br>
+https://huggingface.co/microsoft/Mage-VL-Cowork</p>
+<h2>Meta / Amazon</h2>
+<p>過去24時間以内に条件に合う主要ニュースはありません。</p>
+<h2>Other AI</h2>
+<h3>1. CursorのClaude Code拡張機能に悪性版、最大5,000台に影響か</h3>
+<p>公開タイミング：約22時間前（2026-10-30 17:09 PT／2026-10-31 09:09 JST）<br>
+重要度：高<br>
+信頼度 / ソース種別：専門メディア</p>
+<p>3行要約<br>
+- Cursor上のClaude Code拡張機能の悪性版が、公式アカウント経由とみられる状態で配布されました。<br>
+- 悪性コードは端末情報を収集し、SSHキーの追加、逆向きトンネル、永続化を試みました。<br>
+- Cursorは配布を停止してサーバーを無効化しましたが、アンインストールだけでは復旧できない可能性があります。</p>
+<p>選定理由<br>
+AIコーディングツールがソースコード、クラウド認証情報、開発環境へ広い権限を持つ中、拡張機能の配布経路が重要な攻撃面になった実例です。AIエージェントの普及とソフトウェア供給網セキュリティが不可分になる流れを示します。</p>
+<p>中長期的な意味<br>
+AI開発ツールでは、モデルそのものの安全性だけでなく、拡張機能、マーケットプレイス、更新用トークン、CI/CDまで含めた信頼管理が必要になります。企業では、拡張機能の許可リスト、署名検証、自動更新の管理、端末内資格情報の分離が標準化する可能性があります。</p>
+<p>あなたにとっての意味<br>
+該当期間にCursorからClaude Code拡張機能を導入・更新した場合は、最新版への更新だけで安心せず、Cursorの侵害確認・修復手順に従う必要があります。SSHキー、APIキー、クラウド認証情報の確認とローテーションも検討対象です。</p>
+<p>解釈・評価<br>
+事実として、悪性版は端末情報の送信、SSHバックドアの設置、永続化を試み、Cursorは最大5,000ユーザーへの影響可能性を示しました。一部コードの不備により攻撃が完全に機能しなかった端末もありますが、危険性が低かったという意味ではありません。侵入経路や公式アカウントが悪用された方法は、記事公開時点で未解明です。</p>
+<p>次に起きそうなこと<br>
+見通しとして、CursorとAnthropicによる原因説明や影響範囲の更新が続く可能性があります。AI IDE各社では、拡張機能の署名、公開権限の多要素認証、段階的配信、異常更新の自動停止が強化されるとみられます。</p>
+<p>ソースURL<br>
+https://arstechnica.com/security/2026/10/anthropic-vs-code-extension-on-cursor-backdoored-for-nearly-12-hours/</p>
+<h3>2. OpenAI、Pro向けWork・Codex利用枠を拡大</h3>
+<p>公開タイミング：約5時間前（2026-10-31 12:48 ET／2026-11-01 01:48 JST）<br>
+重要度：中<br>
+信頼度 / ソース種別：専門メディア</p>
+<p>3行要約<br>
+- Pro 100とPro 500のWork・Codex利用枠が従来の2倍になりました。<br>
+- Pro 200で予定されていた利用枠削減は撤回され、低い枠だった契約者も高い枠へ引き上げられます。<br>
+- 価格は据え置きですが、Business Premiumの具体的な増加量や恒久措置かどうかは明示されていません。</p>
+<p>選定理由<br>
+AIエージェントやAIコーディングの採用は、モデル能力だけでなく、月額料金でどこまで作業できるかに左右されます。利用枠の拡大と削減計画の撤回は、AIサブスクリプションの価格・使用量競争が激しくなっていることを示します。</p>
+<p>中長期的な意味<br>
+高性能エージェントを日常的に使う層では、月額価格よりも、実際に完了できるタスク量がプラン選択の中心になります。競合サービスとの比較も、単純なメッセージ数ではなく、エージェントの処理時間や計算量を含む形へ移ります。</p>
+<p>あなたにとっての意味<br>
+ChatGPT ProでWorkやCodexを頻繁に使う場合、同じ月額料金で利用できる作業量が増えます。ただし、タスクの複雑さや選択モデルによって消費量が変わるため、必ず完了タスク数が2倍になるわけではありません。</p>
+<p>解釈・評価<br>
+事実として、Pro 100とPro 500はWork・Codex枠が2倍になり、Pro 200の削減は撤回されました。Business Premiumも増加対象ですが具体的な倍率は不明です。評価としては、利用者の反応を受けた迅速な修正とみられますが、利用枠の分かりにくさは依然として残っています。</p>
+<p>次に起きそうなこと<br>
+見通しとして、OpenAIはモデル別の消費量や残量表示をさらに明確にする必要があります。Anthropic、Google、Microsoftとの競争により、今後も利用枠、追加クレジット、速度別課金の変更が続く可能性があります。</p>
+<p>ソースURL<br>
+https://www.theaigentic.com/wire/wmvwmx8woa7403436</p>
+<h2>今日のMust Read</h2>
+<ol>
+<li>Gemini APIのComputer Useが一般提供に移行<br>
+   - 理由: AIエージェントによるブラウザ・モバイル・デスクトップ操作が、プレビューから本番向け機能へ進んだ節目です。<br>
+   - URL: https://jbiznews.com/google-moves-gemini-computer-use-into-general-availability/</li>
+<li>Microsoft、4BのPC操作モデル「Mage-VL-Cowork」を公開<br>
+   - 理由: GUIとターミナルを統合する小型モデルが、オンデバイス型AIエージェントの方向性を示しています。<br>
+   - URL: https://huggingface.co/microsoft/Mage-VL-Cowork</li>
+<li>CursorのClaude Code拡張機能に悪性版、最大5,000台に影響か<br>
+   - 理由: AIコーディング環境がソースコードや認証情報へ持つ強い権限と、拡張機能の供給網リスクを具体的に示しています。<br>
+   - URL: https://arstechnica.com/security/2026/10/anthropic-vs-code-extension-on-cursor-backdoored-for-nearly-12-hours/</li>
+</ol>
+<h2>深掘り候補</h2>
+<ul>
+<li>Gemini Computer Useの一般提供で、企業向け自動化に必要な安全確認と監査機能がどう変わるか。</li>
+<li>4BのMage-VL-Coworkが一般的なAI PCで実用的な速度と精度を実現できるか。</li>
+<li>Cursor事件を受け、AI IDEの拡張機能署名、公開権限、自動更新をどう設計すべきか。</li>
+<li>OpenAIの利用枠拡大がAnthropicやGoogleのAIコーディング料金に波及するか。</li>
+</ul>
+<h2>全体所感</h2>
+<p>本日は、モデルの大型発表よりも、AIエージェントの実装、利用枠、供給網セキュリティに焦点が集まりました。特にCursorの事件は、AI機能の安全性だけでなく、更新経路や開発端末の権限管理まで含めて評価する必要があることを示しています。Apple、Meta、Amazonについては、過去24時間以内に条件を満たす主要ニュースを確認できませんでした。通知直前に新しい記事が公開された場合、同日中の再実行で結果が変わる可能性があります。</p>
+    </article>
+    <p class="footer">Generated by GitHub Actions</p>
+  </main>
+</body>
+</html>
